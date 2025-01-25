@@ -1,0 +1,405 @@
+Ticket System Infrastructure and Architecture Cost
+Overview
+We are designing a ticket system that enables users to fill out a form with details such as name, email, mobile number, and choice of ticket price. After form submission, the system will integrate with Razorpay for payment processing. Upon successful payment, the system generates a QR code and a hexadecimal ticket identifier. These details are sent to the customer’s mobile number.
+The infrastructure leverages AWS services for scalability, reliability, and cost-effectiveness. Below, we explain the technologies used and the reasoning behind each component.
+Fill out a form with details such as name, email, mobile number, and ticket price choice.
+Proceed to payment via Razorpay.
+Generate a QR code and hexadecimal ticket ID upon successful payment.
+Send the ticket details to the customer's mobile number.
+For a load of 30,000 concurrent users on your ticketing system, the infrastructure must be designed for high scalability and performance. Below is a revised architecture and cost estimation tailored to handle this level of traffic efficiently.
+
+Updated Infrastructure Design
+Key Assumptions:
+30,000 concurrent users with a request-response cycle (average of 5 requests per user during peak hours).
+Application-level caching for reducing database and backend load.
+Regional failover and redundancy for high availability.
+
+Revised AWS Services
+1. AWS EC2 Auto Scaling Group
+Purpose: Handle dynamic traffic with auto-scaling based on CPU/traffic.
+Setup:
+Launch template for instances.
+Minimum 4 instances (t3.medium: 2 vCPUs, 4 GB RAM).
+Maximum scaling to 12 instances for peak load.
+Cost: ~$450/month (estimated scaling to handle peaks).
+
+2. Amazon RDS for PostgreSQL
+Purpose: Manage ticket, user, and transaction data securely.
+Setup:
+db.m6g.large (2 vCPUs, 8 GB RAM) with multi-AZ deployment.
+Storage: 200 GB.
+Read replica for offloading read queries.
+Cost: ~$370/month.
+
+3. Elastic Load Balancer (Application Load Balancer - ALB)
+Purpose: Distribute incoming traffic across multiple EC2 instances.
+Setup:
+Front-facing ALB with health checks.
+Supports TLS termination for secure communication.
+Cost: ~$100/month.
+
+4. Amazon ElastiCache (Redis)
+Purpose: Reduce load on RDS by caching frequently queried data (e.g., ticket prices, user sessions).
+Setup:
+Cluster with 2 nodes (cache.m6g.large).
+Cost: ~$180/month.
+
+5. Amazon S3 + CloudFront
+Purpose: Store and deliver static assets such as QR codes and other media files.
+Setup:
+S3 bucket with 100 GB storage.
+CloudFront distribution for global CDN caching.
+Cost: ~$40/month.
+
+6. Amazon SNS
+Purpose: Send SMS notifications for ticket confirmations.
+Setup:
+Estimated 30,000 SMS messages per month.
+Cost: ~$200/month (at $0.00645/SMS).
+
+7. Amazon SQS
+Purpose: Decouple tasks like QR code generation and database writes.
+Setup:
+10 million requests/month for asynchronous background processing.
+Cost: ~$4/month.
+
+8. Razorpay Payment Gateway
+Purpose: Handle payment processing.
+Cost: 2% per transaction (external).
+
+9. VPC, Security, and Monitoring
+VPC: Private subnets for application servers and RDS.
+AWS CloudWatch: Monitor application performance and set up alarms.
+Cost: ~$20/month for logs and alarms.
+AWS WAF: Protect the application from common web exploits.
+Cost: ~$30/month.
+
+Updated Monthly Cost Breakdown
+Service
+Description
+Monthly Cost (USD)
+EC2 Instances (ASG)
+Auto-scaling (4–12 instances)
+$450.00
+Amazon RDS (PostgreSQL)
+Multi-AZ + Read Replica
+$370.00
+Elastic Load Balancer
+Traffic distribution
+$100.00
+Amazon ElastiCache
+2-node Redis cluster
+$180.00
+S3 + CloudFront
+100 GB storage + CDN
+$40.00
+Amazon SNS
+30,000 SMS
+$200.00
+Amazon SQS
+10M requests
+$4.00
+CloudWatch + WAF
+Logs, alarms, security
+$50.00
+Miscellaneous (DNS)
+Route 53
+$1.50
+Total
+
+
+$1,395.50 
+
+
+
+
+(Note: Razorpay fees are not included in AWS costs.)
+
+Performance Considerations
+Scaling: EC2 Auto Scaling ensures the system can dynamically adapt to traffic spikes.
+Caching: ElastiCache reduces query loads on RDS for frequently accessed data.
+CDN: CloudFront reduces latency for global users accessing static assets.
+Monitoring: CloudWatch provides insights into performance and enables proactive troubleshooting.
+
+Future Optimizations
+Aurora PostgreSQL: Consider Amazon Aurora for higher database scalability if traffic exceeds 50,000 users.
+Containerization: Migrate to ECS/EKS for efficient containerized scaling.
+Lambda Functions: Use AWS Lambda for tasks like QR code generation to reduce EC2 load further.
+
+—----------------------------------------------------------------------------------------------------------------------------------------------
+
+Ticket System Infrastructure and Architecture
+Overview
+We are designing a ticket system that enables users to fill out a form with details such as name, email, mobile number, and choice of ticket price. After form submission, the system will integrate with Razorpay for payment processing. Upon successful payment, the system generates a QR code and a hexadecimal ticket identifier. These details are sent to the customer’s mobile number.
+The infrastructure leverages AWS services for scalability, reliability, and cost-effectiveness. Below, we explain the technologies used and the reasoning behind each component.
+
+1. AWS EC2 (Elastic Compute Cloud)
+Purpose:
+Hosting the frontend and backend servers.
+Provides flexible compute capacity in the cloud.
+Why EC2?
+Scalability: EC2 can scale up or down based on traffic demand.
+Customizability: Full control over the instances to configure and optimize for the ticket system.
+Cost Efficiency: Choose the right instance type and pricing model (on-demand, reserved, or spot) to manage costs effectively.
+
+2. PostgreSQL on Amazon RDS (Relational Database Service)
+Purpose:
+Storing user details, ticket information, payment statuses, and logs.
+Why PostgreSQL on RDS?
+Managed Service: Automatic backups, scaling, and patching reduce maintenance overhead.
+High Availability: Multi-AZ deployments ensure database uptime.
+Security: Data encryption at rest and in transit ensures secure handling of sensitive information.
+Performance: PostgreSQL is optimized for read and write operations, ensuring smooth user experience.
+
+3. Amazon S3 (Simple Storage Service)
+Purpose:
+Storing generated QR codes securely.
+Backing up logs and other static resources (e.g., ticket templates).
+Why S3?
+Durability: 99.999999999% durability ensures the safety of stored QR codes.
+Scalability: Handles unlimited storage without provisioning limits.
+Cost-Effectiveness: Pay-as-you-go pricing model.
+Integration: Easily integrates with other AWS services like CloudFront.
+
+4. Amazon Route 53
+Purpose:
+Managing DNS for the domain hosting the ticket system.
+Why Route 53?
+Reliability: High availability DNS service.
+Global Reach: Helps users access the system quickly from anywhere.
+Ease of Use: Simple setup for domain routing.
+Integration: Works seamlessly with other AWS services like CloudFront and EC2.
+
+5. AWS CloudFront
+Purpose:
+Content delivery network (CDN) for faster loading of frontend assets.
+Why CloudFront?
+Low Latency: Distributes frontend assets globally for reduced load times.
+Security: Provides HTTPS support and DDoS protection.
+Caching: Reduces load on backend servers by caching static assets.
+
+6. AWS SNS (Simple Notification Service)
+Purpose:
+Sending SMS notifications to customers with ticket details.
+Why SNS?
+Scalability: Can handle millions of messages per second.
+Global Reach: Supports sending messages to users in multiple regions.
+Reliability: Ensures message delivery with retry mechanisms.
+
+7. AWS SQS (Simple Queue Service)
+Purpose:
+Queueing payment notifications and ticket generation tasks.
+Why SQS?
+Decoupling: Ensures smooth communication between Razorpay, backend, and notification systems.
+Scalability: Automatically scales to handle high message volumes.
+Reliability: Guarantees at-least-once delivery of messages.
+
+8. Load Balancer
+Purpose:
+Distributing traffic between multiple EC2 instances to ensure high availability.
+Why Load Balancer?
+Fault Tolerance: Ensures traffic is routed to healthy EC2 instances.
+Scalability: Automatically adjusts to traffic spikes.
+Secure Routing: Supports HTTPS and SSL termination.
+
+Payment Gateway: Razorpay
+Purpose:
+Securely processing customer payments.
+Why Razorpay?
+Ease of Integration: Provides APIs for seamless integration with the backend.
+Multiple Payment Options: Supports credit/debit cards, UPI, wallets, and more.
+Real-Time Notifications: Webhooks enable instant updates on payment status.
+Security: PCI-DSS compliance ensures secure transactions.
+
+Hexadecimal Ticket Identifier
+Purpose:
+Providing a unique ticket identifier for verification purposes.
+Why Hexadecimal?
+Uniqueness: Ensures each ticket has a unique ID.
+Compactness: Short and efficient representation compared to UUIDs.
+Readability: Easy to use in URLs or for user communication.
+
+QR Code Generation
+Purpose:
+Encoding ticket details for quick verification at events.
+Why QR Codes?
+Ease of Scanning: Compatible with any smartphone.
+Data Storage: Can store ticket ID, user details, and event details securely.
+Offline Verification: Scannable without the need for an internet connection.
+
+Infrastructure Workflow
+Frontend:
+Deployed on EC2 and served via CloudFront for low latency.
+Users fill out the ticket form and proceed to payment.
+Backend:
+Hosted on EC2 instances behind a load balancer.
+Handles form submissions, payment webhooks, QR code generation, and ticket issuance.
+Payment Processing:
+Razorpay processes payments and sends status updates via webhooks.
+Database:
+PostgreSQL on RDS stores ticket and payment data.
+Queueing:
+SQS ensures reliable communication between payment and ticket generation systems.
+Notifications:
+SNS sends SMS to customers with ticket details.
+Storage:
+QR codes and logs are securely stored in S3.
+
+Benefits of Using This Architecture
+Scalability: AWS services ensure the system can handle spikes in traffic.
+Reliability: Multi-AZ deployments and load balancing minimize downtime.
+Security: Data encryption, HTTPS, and secure payment processing safeguard user data.
+Cost-Effectiveness: Pay-as-you-go pricing reduces operational costs.
+User Experience: Fast performance and real-time notifications enhance customer satisfaction.
+
+—----------------------------------------------------------------------------------------------------------------------------------------------
+Document: Ticketing System Workflow
+1. Overview
+The ticketing system will allow users to purchase tickets by filling in a form, processing the payment via Razorpay, and receiving a ticket (including a QR code and a hexadecimal identifier) via SMS. The system uses AWS infrastructure for reliability and scalability.
+
+2. Workflow
+Step 1: User Form Submission
+The user fills out the form with the following details:
+Name
+Email
+Mobile Number
+Ticket Price Selection
+Step 2: Payment Processing
+The system redirects the user to the Razorpay Payment Gateway.
+After successful payment, Razorpay sends a webhook response to your backend confirming the transaction.
+Step 3: Ticket Generation
+Once the backend receives the successful payment confirmation:
+Generate a unique hexadecimal ticket ID.
+Create a QR code containing the ticket details (ticket ID, name, and ticket price).
+Save the ticket information to the PostgreSQL RDS database.
+Step 4: Ticket Delivery
+Upload the QR code to S3 bucket for storage.
+Send the ticket details (including the ticket ID and QR code link) to the user’s mobile number via SNS (SMS).
+Step 5: Ticket Validation
+Use WebSocket APIs to allow real-time ticket validation at the venue.
+The ticket ID/QR code is scanned, and the backend verifies its validity against the database.
+
+3. Detailed Flowchart
+Here’s a simplified flowchart to visualize the workflow:
+plaintext
+START
+ ↓
+User Fills Form
+ ↓
+Submit → Validate Inputs → Store Form Data (Redis)
+ ↓
+Redirect to Razorpay for Payment
+ ↓
+Razorpay Payment Gateway → Process Payment
+ ↓
+Success → Razorpay Webhook → Backend Receives Confirmation
+ ↓
+Backend Generates:
+  - Hexadecimal Ticket ID
+  - QR Code (Stored in S3)
+ ↓
+Store Ticket Details in PostgreSQL RDS
+ ↓
+Send Ticket Details via SNS (SMS)
+ ↓
+Ticket Ready for Validation
+ ↓
+Venue Scans Ticket → Backend Verifies Validity via WebSocket
+ ↓
+END
+
+
+4. Infrastructure Architecture
+The following AWS components work together to build a reliable and scalable system:
+Frontend
+Deployed on AWS EC2 instances behind a Load Balancer.
+The form submission interacts with the backend through REST APIs.
+Backend (FastAPI-based)
+Runs asynchronously using:
+Redis for caching and real-time data storage (e.g., form inputs).
+RabbitMQ for message queuing.
+Celery for background task processing (e.g., ticket generation).
+Exposes APIs for:
+Form submission
+Payment processing
+Ticket validation
+Database
+PostgreSQL (RDS) stores all ticket and user details securely.
+Ensures data consistency and supports complex queries for reporting.
+Payment Gateway
+Razorpay is integrated with webhooks for real-time payment updates.
+File Storage
+QR codes are stored in S3 buckets for cost-effective and scalable storage.
+CloudFront serves the QR code links for low-latency delivery.
+SMS Notifications
+AWS SNS sends ticket details to the user’s mobile number after successful payment.
+DNS and Routing
+Route 53 manages the domain and routing to the load balancer.
+CloudFront provides secure and fast content delivery.
+Monitoring
+Use AWS CloudWatch to monitor logs and performance metrics.
+
+5. Suggested Improvements
+1. Optimize Real-Time Validation
+Use WebSocket connections for live ticket validation, ensuring real-time responses at the venue.
+2. Enhance Scalability
+Use auto-scaling groups for EC2 instances to handle high traffic.
+3. Add Email Notifications
+In addition to SMS, send ticket details via email using SES (Simple Email Service).
+4. Enhance Security
+Implement a WAF (Web Application Firewall) to protect against malicious traffic.
+Use IAM roles and policies to limit access to AWS resources.
+5. Backup and Disaster Recovery
+Enable automatic backups for PostgreSQL RDS.
+Replicate S3 data to another region using cross-region replication.
+
+6. How It All Works Together
+Frontend Interaction:
+The user interacts with a frontend hosted on EC2 instances. The load balancer ensures even traffic distribution.
+Backend Processing:
+The backend handles user requests asynchronously with FastAPI. It uses Redis for temporary storage, RabbitMQ for message queuing, and Celery for background tasks.
+Payment Gateway:
+Razorpay manages the payment flow. Upon payment completion, it sends a webhook to the backend for confirmation.
+Ticket Generation:
+The backend generates a ticket (hexadecimal ID + QR code) and saves it to RDS and S3. Celery processes these tasks in the background to keep the user-facing APIs responsive.
+Ticket Delivery:
+The ticket details are sent to the user via SNS (SMS) with a link to the QR code hosted on CloudFront.
+Ticket Validation:
+The QR code is scanned at the venue, and the backend verifies its validity using WebSocket APIs.
+
+7. Key Technologies
+Component
+Technology
+Purpose
+Frontend
+HTML/JS/CSS
+User interface for form submission
+Backend
+FastAPI
+Handles APIs, validation, and logic
+Asynchronous Processing
+Celery + RabbitMQ
+Background tasks (e.g., ticket creation)
+Database
+PostgreSQL RDS
+Stores user and ticket data
+Payment Gateway
+Razorpay
+Processes payments securely
+Caching
+Redis
+Temporary storage for performance
+File Storage
+S3 + CloudFront
+Stores and serves QR codes
+Notifications
+AWS SNS
+Sends SMS with ticket details
+Load Balancer
+AWS ELB
+Distributes traffic evenly
+DNS
+Route 53
+Manages domain and traffic routing
+
+

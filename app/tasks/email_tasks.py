@@ -1,6 +1,8 @@
+#  app/tasks/email_tasks.py
+
 from celery import Celery
 from app.config import config
-from app.email_utils import send_email
+from app.utils.email_utils import send_email
 
 celery = Celery('tasks', broker=config.CELERY_BROKER_URL)
 

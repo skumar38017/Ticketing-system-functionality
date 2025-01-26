@@ -3,6 +3,10 @@
 # Created by https://www.toptal.com/developers/gitignore/api/flask,django,cuda
 # Edit at https://www.toptal.com/developers/gitignore?templates=flask,django,cuda
 
+#  Fastapi
+*.holi-t25
+
+
 ### CUDA ###
 *.i
 *.ii

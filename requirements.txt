@@ -6,6 +6,7 @@ billiard==4.2.1
 celery==5.4.0
 certifi==2024.12.14
 cffi==1.17.1
+charset-normalizer==3.4.1
 click==8.1.8
 click-didyoumean==0.3.1
 click-plugins==1.1.1
@@ -40,6 +41,7 @@ pyzbar==0.1.9
 qrcode==8.0
 rabbitmq==0.2.0
 redis==5.2.1
+requests==2.32.3
 rich==13.9.4
 rich-toolkit==0.13.2
 shellingham==1.5.4
@@ -49,6 +51,7 @@ starlette==0.45.3
 typer==0.15.1
 typing_extensions==4.12.2
 tzdata==2025.1
+urllib3==2.3.0
 uvicorn==0.34.0
 uvloop==0.21.0
 vine==5.1.0

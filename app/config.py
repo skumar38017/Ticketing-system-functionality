@@ -1,12 +1,77 @@
-import os
+#  Neon-Stdio-Holi-T25/app/config.py
+
+from app.settings import settings
 
 class Config:
-    DB_HOST = os.getenv("DB_HOST", "localhost")
-    DB_USER = os.getenv("DB_USER", "postgres")
-    DB_PASSWORD = os.getenv("DB_PASSWORD", "postgres")
-    DB_NAME = os.getenv("DB_NAME", "fastapi_qr")
-    CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
-    CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
-    RABBITMQ_URL = os.getenv("RABBITMQ_URL", "amqp://localhost:5672/")
+    """
+    Application configuration manager.
 
+    - Provides properties for database URLs, RabbitMQ URL, Redis URLs,
+      Celery configuration, general app configurations, webhook URL,
+      SMS configuration, and OTP expiration time.
+    - Leverages `settings` from `app.settings.py` for environment variable access.
+    """
+    # Database URLs
+    @property
+    def database_url(self):
+        return f"postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
+
+    @property
+    def async_database_url(self):
+        return f"postgresql+asyncpg://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
+
+    # RabbitMQ URL
+    @property
+    def rabbitmq_url(self):
+        return f"amqp://{settings.RABBITMQ_USER}:{settings.RABBITMQ_PASSWORD}@{settings.RABBITMQ_HOST}:{settings.RABBITMQ_PORT}/{settings.RABBITMQ_VHOST}"
+
+    # Redis URLs
+    @property
+    def redis_broker_url(self):
+        return f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB_BROKER}"
+
+    @property
+    def redis_result_url(self):
+        return f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB_RESULT}"
+
+    # Celery Configuration
+    @property
+    def celery_broker_url(self):
+        return settings.CELERY_BROKER_URL
+
+    @property
+    def celery_result_backend(self):
+        return settings.CELERY_RESULT_BACKEND
+
+    # General App Configurations
+    @property
+    def app_config(self):
+        return {
+            "debug": settings.DEBUG,
+            "host": settings.HOST,
+            "port": settings.PORT,
+            "allowed_hosts": settings.ALLOWED_HOSTS,
+            "secret_key": settings.SECRET_KEY,
+        }
+
+    # Webhook Configuration
+    @property
+    def webhook_url(self):
+        return settings.WEBHOOK_URL
+
+    # SMS Configuration
+    @property
+    def sms_api(self):
+        return {
+            "url": settings.SMS_API_URL,
+            "key": settings.SMS_API_KEY,
+        }
+
+    # OTP Expiration Time
+    @property
+    def otp_expiration_time(self):
+        return settings.OTP_EXPIRATION_TIME
+
+
+# Export a single Config instance for global access
 config = Config()

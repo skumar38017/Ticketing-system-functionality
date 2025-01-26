@@ -32,6 +32,7 @@ ticket_management_system/
 │   │   ├── payment_service.py   # Payment processing logic (Razorpay integration)
 │   │   ├── qr_service.py        # QR code generation logic
 │   │   ├── sms_service.py       # SMS sending logic
+|   |   |-- websocket_service.py  # WebSocket handling logic
 │   ├── utils/                   # Utility/helper functions
 │   │   ├── __init__.py
 │   │   ├── generate_otp.py      # OTP generation helper
@@ -40,8 +41,16 @@ ticket_management_system/
 │   ├── workers/                 # Celery worker setup
 │   │   ├── __init__.py
 │   │   ├── celery_app.py        # Celery app setup
+│   ├── middleware/              # Middleware for handling session data
+│   │   ├── __init__.py
+│   │   ├── session_middleware.py  # Session middleware for handling session data
+|   |   ├── cors_middleware.py  # CORS middleware for handling CORS requests
 ├── requirements.txt             # Python dependencies
 ├── .env                         # Environment variables
 ├── Dockerfile                   # Dockerfile for containerization
 ├── docker-compose.yml           # Docker Compose file for Redis, RabbitMQ, and the FastAPI app
 └── README.md                    # Project documentation
+
+
+celery -A app.workers.celery_app.celery worker --loglevel=info
+celery -A app.workers.celery_app.celery worker --loglevel=info

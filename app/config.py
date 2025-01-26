@@ -11,6 +11,7 @@ class Config:
       SMS configuration, and OTP expiration time.
     - Leverages `settings` from `app.settings.py` for environment variable access.
     """
+
     # Database URLs
     @property
     def database_url(self):
@@ -73,5 +74,13 @@ class Config:
         return settings.OTP_EXPIRATION_TIME
 
 
+    # Email Settings
+    @property
+    def email_address(self):
+        return settings.EMAIL_ADDRESS
+    @property
+    def email_password(self):
+        return settings.EMAIL_PASSWORD  
+    
 # Export a single Config instance for global access
 config = Config()

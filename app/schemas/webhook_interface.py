@@ -7,4 +7,8 @@ class WebhookInterface(BaseModel):
     data: dict  # Event data
     signature: str  # Signature
     timestamp: str  # Timestamp     
-    nonce: str  # Nonce 
+    nonce: str  # Nonce
+
+    class Config:
+        # Ensure we support dict type for data
+        arbitrary_types_allowed = True

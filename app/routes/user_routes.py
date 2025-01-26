@@ -5,6 +5,12 @@ from app.tasks.otp_task import send_otp_task
 from app.tasks.payment_task import process_payment_task
 from app.tasks.qr_task import generate_qr_task
 
+from fastapi import APIRouter, Depends
+from app.services.websocket_service import WebSocketHandler
+from app.services.otp_service import send_otp
+from app.utils.qr_generator import generate_qr_code
+from app.utils.email_utils import send_email
+
 router = APIRouter()
 
 @router.post("/get_users", response_model=schemas.UserResponse,
@@ -90,7 +96,7 @@ async def error_page():
              summary="Validate QR code",
              description="Validate QR code and return user details.",
              )
-async def validate_qr(file: UploadFile):
+async def validate_qr(file: UploadFile, db: AsyncSession = Depends(get_db)):
     try:
         # Open the uploaded file as an image
         img = Image.open(file.file)
@@ -118,3 +124,15 @@ async def validate_qr(file: UploadFile):
     
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error: {str(e)}")
+
+
+@router.get("/generate_otp")
+async def generate_otp_and_notify(websocket: WebSocket, ws_handler: WebSocketHandler = Depends(WebSocketHandler)):
+    otp = send_otp()
+    await ws_handler.send_message(f"OTP: {otp} generated!")
+
+    qr_code_image = generate_qr_code("user details")
+    await ws_handler.send_message("QR code generated!")
+    
+    # Optionally store OTP/QR code in session or database for later use
+    return {"message": "OTP and QR code generated successfully!"}

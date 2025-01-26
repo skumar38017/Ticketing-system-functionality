@@ -1,11 +1,9 @@
-
 #  app/schemas/user_schema.py
 
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 from datetime import datetime
 import uuid
-
 
 # User schema
 class UserBase(BaseModel):
@@ -55,12 +53,12 @@ class PaymentBase(BaseModel):
 
 
 class PaymentCreate(PaymentBase):
-    user_id: int
+    user_id: str
 
 
 class PaymentResponse(PaymentBase):
     uuid: str
-    user_id: int
+    user_id: str
     payment_method: str
     transaction_id: str
     transaction_status: str
@@ -85,12 +83,12 @@ class QRCodeBase(BaseModel):
 
 
 class QRCodeCreate(QRCodeBase):
-    user_id: int
+    user_id: str
 
 
 class QRCodeResponse(QRCodeBase):
     uuid: str
-    user_id: int
+    user_id: str
     created_at: datetime
     updated_at: datetime
 
@@ -105,12 +103,12 @@ class SMSBase(BaseModel):
 
 
 class SMSCreate(SMSBase):
-    user_id: int
+    user_id: str
 
 
 class SMSResponse(SMSBase):
     uuid: str
-    user_id: int
+    user_id: str
     created_at: datetime
     updated_at: datetime
 
@@ -121,16 +119,16 @@ class SMSResponse(SMSBase):
 # Email schema
 class EmailBase(BaseModel):
     email: EmailStr
-    message: str = Field(..., max_length=50)
+    message: str
 
 
 class EmailCreate(EmailBase):
-    user_id: int
+    user_id: str
 
 
 class EmailResponse(EmailBase):
     uuid: str
-    user_id: int
+    user_id: str
     created_at: datetime
     updated_at: datetime
 

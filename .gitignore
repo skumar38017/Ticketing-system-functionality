@@ -3,6 +3,12 @@
 # Created by https://www.toptal.com/developers/gitignore/api/flask,django,cuda
 # Edit at https://www.toptal.com/developers/gitignore?templates=flask,django,cuda
 
+# docker-compose
+rabbitmq_data
+postgres_data
+redis_data
+
+
 #  Fastapi
 *.holi-t25
 

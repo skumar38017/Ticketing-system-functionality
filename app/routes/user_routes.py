@@ -11,6 +11,12 @@ from app.services.otp_service import send_otp
 from app.utils.qr_generator import generate_qr_code
 from app.utils.email_utils import send_email
 
+from fastapi import APIRouter
+from app.tasks.otp_task import send_otp_task
+from app.tasks.payment_task import process_payment_task
+from app.tasks.qr_task import generate_qr_task
+from app.tasks.email_tasks import send_welcome_email
+
 router = APIRouter()
 
 @router.post("/get_users", response_model=schemas.UserResponse,
@@ -65,17 +71,15 @@ async def verify_otp(mobile_no: str, otp: str):
     # Assuming OTP is valid for now
     return {"message": "OTP verified"}
 
-@router.post("/process_payment")
-async def process_payment(payment_data: dict):
-    # Trigger payment task
-    payment_result = process_payment_task.delay(payment_data)
-    return {"message": "Payment initiated", "status": "pending"}
+@router.get("/process-payment/")
+async def trigger_payment(payment_data: dict):
+    result = process_payment_task.delay(payment_data)
+    return {"task_id": result.id, "status": "Payment Task Sent"}
 
-@router.post("/generate_qr")
-async def generate_qr(data: dict):
-    # Trigger QR code generation task
-    generate_qr_task.delay(data)
-    return {"message": "QR code generation in process"}
+@router.get("/generate-qr/")
+async def trigger_qr(data: dict):
+    result = generate_qr_task.delay(data)
+    return {"task_id": result.id, "status": "QR Task Sent"}
 
 
 @router.get("/success")
@@ -127,12 +131,6 @@ async def validate_qr(file: UploadFile, db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/generate_otp")
-async def generate_otp_and_notify(websocket: WebSocket, ws_handler: WebSocketHandler = Depends(WebSocketHandler)):
-    otp = send_otp()
-    await ws_handler.send_message(f"OTP: {otp} generated!")
-
-    qr_code_image = generate_qr_code("user details")
-    await ws_handler.send_message("QR code generated!")
-    
-    # Optionally store OTP/QR code in session or database for later use
-    return {"message": "OTP and QR code generated successfully!"}
+async def trigger_otp(mobile_no: str, ticket_price: float, ticket_name: str, ticket_qty: int):
+    result = send_otp_task.delay(mobile_no, ticket_price, ticket_name, ticket_qty)
+    return {"task_id": result.id, "status": "OTP Task Sent"}

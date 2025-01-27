@@ -15,6 +15,6 @@ def send_otp_task(mobile_no: str, ticket_price: float, ticket_name: str, ticket_
         ticket_qty (int): The quantity of tickets.
     """
     otp = send_otp(mobile_no, ticket_price, ticket_name, ticket_qty)
-    send_sms(mobile_no, f"Your OTP is {otp}")
+    send_sms(mobile_no, f"mobile_no, ticket_price, ticket_name, ticket_qty")
 
     return {"message": "OTP sent"}

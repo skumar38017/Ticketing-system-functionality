@@ -45,6 +45,13 @@ ticket_management_system/
 │   │   ├── __init__.py
 │   │   ├── session_middleware.py  # Session middleware for handling session data
 |   |   ├── cors_middleware.py  # CORS middleware for handling CORS requests
+|   |-- RabbitMQ                  # RabbitMQ setup
+|   |   ├── Dockerfile
+|   |   ├── docker-compose.yml
+|   |   ├── rabbitmq.conf
+|   |   ├── rabbitmq.env
+|   |   ├── rabbitmq.env.example
+|   |   └── rabbitmq.sh
 ├── requirements.txt             # Python dependencies
 ├── .env                         # Environment variables
 ├── Dockerfile                   # Dockerfile for containerization
@@ -54,3 +61,4 @@ ticket_management_system/
 
 celery -A app.workers.celery_app.celery worker --loglevel=info
 celery -A app.workers.celery_app.celery worker --loglevel=info
+celery -A app.workers.celery_app worker --loglevel=info --concurrency=4

@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"   
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+      - RABBITMQ_DEFAULT_VHOST=/
+    volumes:
+      - ${pwd}/rabbitmq_data:/var/lib/rabbitmq
+      - ${pwd}/rabbitmq_data/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+    networks:
+      - backend-network
+    restart: always
+
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ${pwd}/redis_data:/data
+    networks:
+      - backend-network
+    restart: always
+
+  celery-beat:
+    build:
+      context: .
+    container_name: celery-beat-container
+    command: celery -A app.workers.celery_app beat --loglevel=info
+    env_file:
+      - .env
+    depends_on:
+      - rabbitmq
+      - redis
+    volumes:
+      - ${pwd}/rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - backend-network
+
+  celery:
+    build:
+      context: .
+    container_name: celery-container
+    command: celery -A app.workers.celery_app worker --loglevel=info
+    env_file:
+      - .env
+    depends_on:
+      - rabbitmq
+      - redis
+      - postgres
+    volumes:
+      - ${pwd}/rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - backend-network
+
+  postgres:
+    image: postgres:15
+    container_name: postgres-container
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ${pwd}/postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend-network
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+  redis_data:
+
+networks:
+  backend-network:
+    driver: bridge

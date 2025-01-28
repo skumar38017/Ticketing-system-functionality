@@ -1,0 +1,29 @@
+#  Neon-Stdio-Holi-T25/cert/noco.cert
+
+[noco]
+URL = http://localhost:8080
+Username = admin@admin.com
+Password = admin
+Database = this%20is%20testing%20database
+API Tokens = wpOxA8Jtl57Hv45QpWTfQU5XKBodayJvwiVCFR7W
+
+this%20is%20testing%20database
+Share_public_url = http://localhost:8083/dashboard/#/nc/view/800ec59f-50b9-4b56-868b-508bad052f79
+
+[RabbitMQ]
+URL = http://localhost:15672
+Username = [guest, holi-t25]
+Password = [guest, holi-t25]
+Virtual Host = [/, holi-t25]
+Exchange = nocodb
+Routing Key = nocodb
+Cluster rabbit@eb3fbc34af61
+
+[Redis]
+DB = 0
+
+[PostgreSQL]
+DB = postgres
+User = postgres
+Password = postgres
+

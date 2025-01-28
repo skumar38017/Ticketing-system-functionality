@@ -6,25 +6,37 @@ services:
     container_name: ${RABBITMQ_CONTAINER_NAME}
     restart: on-failure:3
     ports:
-      - ${RABBITMQ_PORT}:${RABBITMQ_HTTP_PORT}
-      - "15672:15672"   
+      - "${RABBITMQ_PORT}:${RABBITMQ_HTTP_PORT}"
+      - "${RABBIT_WEB_PORT}:${RABBIT_WEB_HTTP_PORT}"
     environment:
-    - RABBITMQ_USER=${RABBITMQ_USER}
-    - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
-    - RABBITMQ_VHOST=${RABBITMQ_VHOST}
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASS}
+      RABBITMQ_VHOST: ${RABBITMQ_VHOST}
+    env_file:
+      - ./docker.env
     volumes:
       - ${PWD}/rabbitmq_data:/var/lib/rabbitmq
       - ${PWD}/rabbitmq_data/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
     networks:
       - ${NETWORK}
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
 
-  # Redis service
   redis:
     container_name: ${REDIS_CONTAINER_NAME}
     image: ${REDIS_IMAGE}
     restart: on-failure:3
     ports:
       - "${REDIS_PORT}:${REDIS_HTTP_PORT}"
+    env_file:
+      - ./docker.env
+    environment:
+      - REDIS_DB_BROKER=${REDIS_DB_BROKER}
+      - REDIS_DB_RESULT=${REDIS_DB_RESULT}
     networks:
       - ${NETWORK}
     depends_on:
@@ -38,37 +50,56 @@ services:
       start_period: 30s
 
   celery-beat:
-     build:
-       context: .
-     container_name: celery-beat-container
-     command: celery -A app.workers.celery_app beat --loglevel=info
-     env_file:
-       - .env
-     depends_on:
-       - rabbitmq
-       - redis
-     volumes:
-       - ${PWD}/rabbitmq_data:/var/lib/rabbitmq
-     networks:
-       - ${NETWORK}
+    build:
+      context: .
+      args:
+        RABBITMQ_URL: ${RABBITMQ_URL}
+    container_name: celery-beat-container
+    command: celery -A app.workers.celery_app beat --loglevel=info
+    env_file:
+      - ./docker.env
+    environment:
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+    depends_on:
+      - rabbitmq
+      - redis
+    volumes:
+      - ${PWD}/rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - ${NETWORK}
+    healthcheck:
+      test: ["CMD", "celery", "inspect", "ping"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
 
   celery:
-     build:
-       context: .
-     container_name: celery-container
-     command: celery -A app.workers.celery_app worker --loglevel=info
-     env_file:
-       - .env
-     depends_on:
-       - rabbitmq
-       - redis
-       - postgres
-     volumes:
-       - ${PWD}/rabbitmq_data:/var/lib/rabbitmq
-     networks:
-       - ${NETWORK}
+    build:
+      context: .
+      args:
+        RABBITMQ_URL: ${RABBITMQ_URL}
+    container_name: celery-container
+    command: celery -A app.workers.celery_app worker --loglevel=info
+    env_file:
+      - ./docker.env
+    environment:
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+    depends_on:
+      - rabbitmq
+      - redis
+      - postgres
+    volumes:
+      - ${PWD}/rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - ${NETWORK}
+    healthcheck:
+      test: ["CMD", "celery", "inspect", "ping"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
 
-  # PostgreSQL service 
   postgres:
     image: ${POSTGRESS_IMAGE}
     container_name: ${POSTGRES_CONTAINER_NAME}
@@ -79,6 +110,8 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "${POSTGRES_PORT}:${POSTGRES_HTTP_PORT}"
+    env_file:
+      - ./docker.env
     networks:
       - ${NETWORK}
     volumes:
@@ -90,7 +123,6 @@ services:
       retries: 5
       start_period: 30s
 
-  # NocoDB service (no-code platform)
   nocodb:
     container_name: ${NOCO_CONTAINER_NAME}
     image: ${NOCO_IMAGE}
@@ -100,10 +132,12 @@ services:
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT}
       - DB_USER=${DB_USER}
-      - DB_PASS=${DB_PASS}      
+      - DB_PASS=${DB_PASS}
       - DB_NAME=${DB_NAME}
     ports:
-      - "${NOCO_DB_PORT}:${NOCO_HTTP_PORT}"  # Expose the port for NocoDB, Bind host port 8083 to container port 8080
+      - "${NOCO_DB_PORT}:${NOCO_HTTP_PORT}"
+    env_file:
+      - ./docker.env
     volumes:
       - ${PWD}/nocodb_data:/usr/app/data
     networks:
@@ -113,7 +147,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${NOCO_HTTP_PORT}/api/healthz"]
       interval: 1m30s
@@ -121,7 +154,6 @@ services:
       retries: 5
       start_period: 30s
 
-  # Watchtower service to automatically update containers
   watchtower:
     container_name: ${WATCHTOWER_CONTAINER_NAME}
     image: ${WATCHTOWER_IMAGE}
@@ -131,6 +163,8 @@ services:
     command: --interval 300 --cleanup
     ports:
       - "${WATCHTOWER_PORT}:${WATCHTOWER_HTTP_PORT}"
+    env_file:
+      - ./docker.env
     networks:
       - ${NETWORK}
     healthcheck:

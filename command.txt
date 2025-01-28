@@ -1,0 +1,80 @@
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+--> celery.txt
+    celery -A app.workers.celery_app.celery worker --loglevel=info
+    celery -A app.workers.celery_app worker --loglevel=info --concurrency=4
+    celery -A app.workers.celery_app flower --port=5555
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+--> migrations.txt
+
+Initialize Alembic: To initialize Alembic and set up the migration folder, run:
+alembic init alembic
+
+Create a new migration: To create a new migration file, run:
+alembic revision --autogenerate -m "Description of changes"
+
+Apply migrations: To apply all migrations, run:
+alembic upgrade head
+
+Rollback migrations: To rollback the last migration, run:
+alembic downgrade -1
+
+Drop migrations: To drop all migrations, run:
+alembic downgrade base
+
+
+--------------------------------------------------------------------------------
+--> rabbitmq.txt
+
+# Start RabbitMQ
+sudo systemctl start rabbitmq-server
+
+# Stop RabbitMQ
+sudo systemctl stop rabbitmq-server
+
+# Restart RabbitMQ
+sudo systemctl restart rabbitmq-server
+
+# Check RabbitMQ status
+sudo systemctl status rabbitmq-server
+
+# Enable RabbitMQ management plugin
+sudo rabbitmq-plugins enable rabbitmq_management
+
+# Start RabbitMQ management plugin
+sudo systemctl start rabbitmq-server
+
+# Stop RabbitMQ management plugin
+sudo systemctl stop rabbitmq-server
+
+# Restart RabbitMQ management plugin
+sudo systemctl restart rabbitmq-server
+
+# Check RabbitMQ management plugin status    
+sudo systemctl status rabbitmq-server   
+
+docker exec -it rabbitmq rabbitmqctl add_user user password
+docker exec -it rabbitmq rabbitmqctl set_permissions -p / <username> ".*" ".*" ".*"
+docker exec -it rabbitmq rabbitmqctl set_user_tags user administrator
+
+docker logs rabbitmq
+
+
+--------------------------------------------------------------------------------
+# docker-compose 
+
+docker-compose up -d
+docker-compose down
+docker-compose up -d --build
+docker-compose up -d --build --no-cache
+docker-compose --env-file docker.env up -d --build
+
+
+
+--------------------------------------------------------------------------------
+docker stop $(docker ps -aq)
+docker rm $(docker ps -aq)
+docker rmi -f $(docker images -aq)
+docker system prune -a
+

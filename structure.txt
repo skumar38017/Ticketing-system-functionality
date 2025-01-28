@@ -64,29 +64,3 @@ ticket_management_system/
 ├── docker-compose.yml           # Docker Compose file for Redis, RabbitMQ, and the FastAPI app
 └── README.md                    # Project documentation
 
-
-
-----------------------------------------------------------------------------------------------------------------------------------------------------------------
---> celery.txt
-    celery -A app.workers.celery_app.celery worker --loglevel=info
-    celery -A app.workers.celery_app worker --loglevel=info --concurrency=4
-    celery -A app.workers.celery_app flower --port=5555
-
-
-----------------------------------------------------------------------------------------------------------------------------------------------------------------
---> migrations.txt
-
-Initialize Alembic: To initialize Alembic and set up the migration folder, run:
-alembic init alembic
-
-Create a new migration: To create a new migration file, run:
-alembic revision --autogenerate -m "Description of changes"
-
-Apply migrations: To apply all migrations, run:
-alembic upgrade head
-
-Rollback migrations: To rollback the last migration, run:
-alembic downgrade -1
-
-Drop migrations: To drop all migrations, run:
-alembic downgrade base

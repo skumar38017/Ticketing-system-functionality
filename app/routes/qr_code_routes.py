@@ -3,7 +3,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.database import get_db
-from app.schemas import QRCodeCreate, QRCodeResponse
+from app.schemas.schema import QRCodeCreate, QRCodeResponse
 from app.curd_operation.qr_code_curd import create_qr_code, get_qr_code_by_uuid, get_qr_codes_by_user_uuid, update_qr_code, delete_qr_code
 
 router = APIRouter()

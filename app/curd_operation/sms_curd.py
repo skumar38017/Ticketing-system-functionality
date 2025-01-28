@@ -3,7 +3,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.database.models import SMS
-from app.schemas import SMSCreate
+from app.schemas.schema import SMSCreate
 from uuid import uuid4
 
 # Create a new SMS entry

@@ -3,9 +3,6 @@
 from app.settings import settings
 from typing import Dict
 
-from app.settings import settings
-from typing import Dict
-
 class Config:
     """
     Application configuration manager.

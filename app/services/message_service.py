@@ -4,9 +4,9 @@ import requests
 from app.config import config
 from datetime import datetime
 from app.database.models import SMS
-from app.schemas import UserResponse
-from app.schemas import PaymentResponse
-from app.schemas import SMSCreate
+from app.schemas.schema import UserResponse
+from app.schemas.schema import PaymentResponse
+from app.schemas.schema import SMSCreate
 from app.database import SessionLocal
 
 def send_sms_confirmation(user: dict, payment: dict):

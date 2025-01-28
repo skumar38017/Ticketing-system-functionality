@@ -3,7 +3,7 @@
 from app.config import config
 from app.database.redisclient import RedisClient
 from app.utils.qr_generator import generate_qr_code
-from app.schemas import QRCodeCreate
+from app.schemas.schema import QRCodeCreate
 from app.database.models import QRCode
 from app.database import SessionLocal
 

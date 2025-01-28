@@ -1,6 +1,6 @@
     #  app/database/models.py
 
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Enum
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Enum, Float
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 import uuid
@@ -42,14 +42,14 @@ class Payment(Base):
     ticket_qty = Column(Integer, nullable=False)  # Number of tickets purchased
     payment_method = Column(String(50), nullable=False)  # E.g., Debit Card, UPI, etc.
     transaction_id = Column(String(50), nullable=False)  # Transaction reference ID
-    amount = Column(float, nullable=False, default=0)  # Total payment amount
-    disscount = Column(float, nullable=False, default=0)  # Disscount amount
-    gst = Column(float, nullable=False, default=0)  # Total GST applied
-    i_gst = Column(float, nullable=False, default=0)  # IGST applied
-    s_gst = Column(float, nullable=False, default=0)  # SGST applied
-    c_gst = Column(float, nullable=False, default=0)  # CGST applied
-    transaction_fee = Column(float, nullable=False)  # Fee associated with the payment
-    total_amount = Column(float, nullable=False, default=0)  # Total payment amount
+    amount = Column(Float, nullable=False, default=0)  # Total payment amount
+    disscount = Column(Float, nullable=False, default=0)  # Disscount amount
+    gst = Column(Float, nullable=False, default=0)  # Total GST applied
+    i_gst = Column(Float, nullable=False, default=0)  # IGST applied
+    s_gst = Column(Float, nullable=False, default=0)  # SGST applied
+    c_gst = Column(Float, nullable=False, default=0)  # CGST applied
+    transaction_fee = Column(Float, nullable=False)  # Fee associated with the payment
+    total_amount = Column(Float, nullable=False, default=0)  # Total payment amount
     transaction_status = Column(Enum('successfully', 'failed', 'still processing', name='payment_status'), nullable=False)  # E.g., Success, Failed
     created_at = Column(DateTime, default=datetime.datetime.utcnow)  # Record creation time
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)  # Last update time

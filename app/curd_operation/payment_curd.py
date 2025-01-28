@@ -3,7 +3,7 @@
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.models import Payment
-from app.schemas import PaymentCreate, PaymentResponse
+from app.schemas.schema import PaymentCreate, PaymentResponse
 from sqlalchemy.exc import SQLAlchemyError
 
 # Create a new payment

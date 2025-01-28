@@ -3,7 +3,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.database import get_db
-from app.schemas import SMSCreate, SMSResponse
+from app.schemas.schema import SMSCreate, SMSResponse
 from app.curd_operation.sms_curd import create_sms, get_sms_by_uuid, get_all_sms, update_sms, delete_sms
 
 router = APIRouter()

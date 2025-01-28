@@ -1,7 +1,7 @@
 #  app/routes/webhook_routes.py
 
 from fastapi import APIRouter, HTTPException, Request
-from app.schemas import UserResponse
+from app.schemas.schema import UserResponse
 
 router = APIRouter()
 

@@ -5,9 +5,9 @@ from fastapi.responses import JSONResponse
 from app.routes import user_routes, webhook_routes, websocket_routes
 from app.workers.celery_app import celery_app
 from app.database.database import get_db_connection
-from app.database import UserRegister
-from app.tasks import send_welcome_email
-from app.services import WebSocketHandler
+# from app.database import UserRegister
+from app.tasks.email_tasks import send_welcome_email
+from app.services.websocket_service import WebSocketHandler
 from app.config import config
 from app.settings import settings
 from app.middleware.cors_middleware import CustomCORSMiddleware
@@ -43,7 +43,7 @@ app = FastAPI(
 )
 
 # Add middleware separately
-app.add_middleware(RedisSessionMiddleware, redis_url=config.REDIS_URL)
+app.add_middleware(RedisSessionMiddleware, redis_url=config.redis_result_url)
 app.add_middleware(CustomCORSMiddleware)
 
 # Include routes

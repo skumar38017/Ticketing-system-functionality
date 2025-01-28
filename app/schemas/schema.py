@@ -46,7 +46,7 @@ class PaymentBase(BaseModel):
     s_gst: float = 0
     c_gst: float = 0
     total_amount: float = 0
-    transaction_status: str = Field(..., regex="^(successfully|failed|still processing)$")
+    transaction_status: str = Field(..., pattern="^(successfully|failed|still processing)$")
 
 
 class PaymentCreate(PaymentBase):
@@ -103,7 +103,7 @@ class QRCodeResponse(QRCodeBase):
 class SMSBase(BaseModel):
     mobile_no: str = Field(..., max_length=10, min_length=10)
     message: str = Field(..., max_length=500)
-    message_send_confirmation: str = Field(..., regex="^(successfully|failed)$")
+    message_send_confirmation: str = Field(..., pattern="^(successfully|failed)$")
 
 
 class SMSCreate(SMSBase):

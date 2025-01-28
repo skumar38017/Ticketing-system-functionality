@@ -3,7 +3,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.database.models import QRCode
-from app.schemas import QRCodeCreate
+from app.schemas.schema import QRCodeCreate
 
 # Create a new QR code
 async def create_qr_code(db: AsyncSession, qr_code: QRCodeCreate):

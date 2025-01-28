@@ -3,7 +3,7 @@
 import requests
 import random
 from app.config import config
-from app.schemas import SMSCreate
+from app.schemas.schema import SMSCreate
 from app.database.models import SMS
 from app.database import SessionLocal
 from app.utils.generate_otp import generate_otp

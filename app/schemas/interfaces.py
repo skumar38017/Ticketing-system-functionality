@@ -2,7 +2,7 @@
 
 from pydantic import BaseModel
 from typing import List
-from app.schemas.schema import UserResponse, PaymentResponse, QRCodeResponse, SMSResponse, EmailResponse
+from app.schemas.schema.schema import UserResponse, PaymentResponse, QRCodeResponse, SMSResponse, EmailResponse
 
 class UserInterface(BaseModel):
     uuid: str

@@ -3,7 +3,7 @@
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.models import User
-from app.schemas import UserCreate, UserResponse
+from app.schemas.schema import UserCreate, UserResponse
 from sqlalchemy.exc import SQLAlchemyError
 
 # Create a new user

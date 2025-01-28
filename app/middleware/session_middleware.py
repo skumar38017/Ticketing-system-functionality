@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class RedisSessionMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app, redis_url: str = os.getenv('REDIS_URL')):
+    def __init__(self, app, redis_url: str = os.getenv('redis_result_url')):
         super().__init__(app)
         self.redis = Redis.from_url(redis_url)
         logger.info("Redis session middleware initialized.")

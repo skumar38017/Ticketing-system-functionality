@@ -43,6 +43,7 @@ ticket_management_system/
 │   │   ├── generate_otp.py      # OTP generation helper
 │   │   ├── qr_generator.py      # QR code generation helper
 |   |   ├── email_utils.py       # Email sending utility
+|   |   |-- generate_payment_receipt.py  # Generate payment receipt
 │   ├── workers/                 # Celery worker setup
 │   │   ├── __init__.py
 │   │   ├── celery_app.py        # Celery app setup
@@ -64,7 +65,28 @@ ticket_management_system/
 └── README.md                    # Project documentation
 
 
-celery -A app.workers.celery_app.celery worker --loglevel=info
-celery -A app.workers.celery_app.celery worker --loglevel=info
-celery -A app.workers.celery_app worker --loglevel=info --concurrency=4
-celery -A app.workers.celery_app flower --port=5555
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+--> celery.txt
+    celery -A app.workers.celery_app.celery worker --loglevel=info
+    celery -A app.workers.celery_app worker --loglevel=info --concurrency=4
+    celery -A app.workers.celery_app flower --port=5555
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+--> migrations.txt
+
+Initialize Alembic: To initialize Alembic and set up the migration folder, run:
+alembic init alembic
+
+Create a new migration: To create a new migration file, run:
+alembic revision --autogenerate -m "Description of changes"
+
+Apply migrations: To apply all migrations, run:
+alembic upgrade head
+
+Rollback migrations: To rollback the last migration, run:
+alembic downgrade -1
+
+Drop migrations: To drop all migrations, run:
+alembic downgrade base

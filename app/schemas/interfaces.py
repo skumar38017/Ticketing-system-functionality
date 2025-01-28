@@ -21,14 +21,15 @@ class PaymentInterface(BaseModel):
     ticket_qty: int
     payment_method: str
     transaction_id: str
+    amount: float
+    disscount: float
+    transaction_fee: float
+    gst: float
+    i_gst: float
+    s_gst: float
+    c_gst: float
+    total_amount: float = 0
     transaction_status: str
-    transaction_fee: int
-    amount: int
-    status: str
-    gst: int
-    i_gst: int
-    s_gst: int
-    c_gst: int
     created_at: str
     updated_at: str
 
@@ -78,14 +79,15 @@ class PaymentResponseInterface(BaseModel):
     ticket_qty: int
     payment_method: str
     transaction_id: str
+    amount: float
+    disscount: float
+    transaction_fee: float
+    gst: float
+    i_gst: float
+    s_gst: float
+    c_gst: float
+    total_amount: float = 0
     transaction_status: str
-    transaction_fee: int
-    amount: int
-    status: str
-    gst: int
-    i_gst: int
-    s_gst: int
-    c_gst: int
     created_at: str
     updated_at: str
 

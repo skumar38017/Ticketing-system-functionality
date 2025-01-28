@@ -38,14 +38,15 @@ class PaymentBase(BaseModel):
     ticket_qty: int
     payment_method: str = Field(..., max_length=50)
     transaction_id: str = Field(..., max_length=50)
-    transaction_status: str = Field(..., max_length=50)
-    transaction_fee: float
     amount: float = 0
-    status: str = Field(..., regex="^(successfully|failed|still processing)$")
+    disscount: float = 0
+    transaction_fee: float
     gst: float = 0
     i_gst: float = 0
     s_gst: float = 0
     c_gst: float = 0
+    total_amount: float = 0
+    transaction_status: str = Field(..., regex="^(successfully|failed|still processing)$")
 
 
 class PaymentCreate(PaymentBase):
@@ -59,14 +60,15 @@ class PaymentResponse(PaymentBase):
     ticket_qty: str
     payment_method: str
     transaction_id: str
-    transaction_status: str
-    transaction_fee: float
     amount: float
-    status: str
+    disscount: float
+    transaction_fee: float
     gst: float
     i_gst: float
     s_gst: float    
     c_gst: float
+    total_amount: float
+    transaction_status: str
     created_at: datetime
     updated_at: datetime
 

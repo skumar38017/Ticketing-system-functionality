@@ -6,15 +6,15 @@ services:
     container_name: ${RABBITMQ_CONTAINER_NAME}
     restart: on-failure:3
     ports:
-      - "5672:5672"
+      - ${RABBITMQ_PORT}:${RABBITMQ_HTTP_PORT}
       - "15672:15672"   
     environment:
-      - ${RABBITMQ_DEFAULT_USER}
-      - ${RABBITMQ_DEFAULT_PASS}
-      - ${RABBITMQ_DEFAULT_VHOST}
+    - RABBITMQ_USER=${RABBITMQ_USER}
+    - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+    - RABBITMQ_VHOST=${RABBITMQ_VHOST}
     volumes:
-      - ${pwd}/rabbitmq_data:/var/lib/rabbitmq
-      - ${pwd}/rabbitmq_data/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - ${PWD}/rabbitmq_data:/var/lib/rabbitmq
+      - ${PWD}/rabbitmq_data/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
     networks:
       - ${NETWORK}
 
@@ -38,35 +38,35 @@ services:
       start_period: 30s
 
   celery-beat:
-    build:
-      context: .
-    container_name: celery-beat-container
-    command: celery -A app.workers.celery_app beat --loglevel=info
-    env_file:
-      - .env
-    depends_on:
-      - rabbitmq
-      - redis
-    volumes:
-      - ${pwd}/rabbitmq_data:/var/lib/rabbitmq
-    networks:
-      - ${NETWORK}
+     build:
+       context: .
+     container_name: celery-beat-container
+     command: celery -A app.workers.celery_app beat --loglevel=info
+     env_file:
+       - .env
+     depends_on:
+       - rabbitmq
+       - redis
+     volumes:
+       - ${PWD}/rabbitmq_data:/var/lib/rabbitmq
+     networks:
+       - ${NETWORK}
 
   celery:
-    build:
-      context: .
-    container_name: celery-container
-    command: celery -A app.workers.celery_app worker --loglevel=info
-    env_file:
-      - .env
-    depends_on:
-      - rabbitmq
-      - redis
-      - postgres
-    volumes:
-      - ${pwd}/rabbitmq_data:/var/lib/rabbitmq
-    networks:
-      - ${NETWORK}
+     build:
+       context: .
+     container_name: celery-container
+     command: celery -A app.workers.celery_app worker --loglevel=info
+     env_file:
+       - .env
+     depends_on:
+       - rabbitmq
+       - redis
+       - postgres
+     volumes:
+       - ${PWD}/rabbitmq_data:/var/lib/rabbitmq
+     networks:
+       - ${NETWORK}
 
   # PostgreSQL service 
   postgres:

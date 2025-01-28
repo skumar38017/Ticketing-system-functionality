@@ -2,32 +2,40 @@ version: '3.8'
 
 services:
   rabbitmq:
-    image: rabbitmq:3-management
-    container_name: rabbitmq
+    image: ${RABBITMQ_IMAGE}
+    container_name: ${RABBITMQ_CONTAINER_NAME}
+    restart: on-failure:3
     ports:
       - "5672:5672"
       - "15672:15672"   
     environment:
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
-      - RABBITMQ_DEFAULT_VHOST=/
+      - ${RABBITMQ_DEFAULT_USER}
+      - ${RABBITMQ_DEFAULT_PASS}
+      - ${RABBITMQ_DEFAULT_VHOST}
     volumes:
       - ${pwd}/rabbitmq_data:/var/lib/rabbitmq
       - ${pwd}/rabbitmq_data/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
     networks:
-      - backend-network
-    restart: always
+      - ${NETWORK}
 
+  # Redis service
   redis:
-    image: redis
-    container_name: redis
+    container_name: ${REDIS_CONTAINER_NAME}
+    image: ${REDIS_IMAGE}
+    restart: on-failure:3
     ports:
-      - "6379:6379"
-    volumes:
-      - ${pwd}/redis_data:/data
+      - "${REDIS_PORT}:${REDIS_HTTP_PORT}"
     networks:
-      - backend-network
-    restart: always
+      - ${NETWORK}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
 
   celery-beat:
     build:
@@ -42,7 +50,7 @@ services:
     volumes:
       - ${pwd}/rabbitmq_data:/var/lib/rabbitmq
     networks:
-      - backend-network
+      - ${NETWORK}
 
   celery:
     build:
@@ -58,61 +66,85 @@ services:
     volumes:
       - ${pwd}/rabbitmq_data:/var/lib/rabbitmq
     networks:
-      - backend-network
+      - ${NETWORK}
 
+  # PostgreSQL service 
   postgres:
-    image: postgres:15
-    container_name: postgres-container
+    image: ${POSTGRESS_IMAGE}
+    container_name: ${POSTGRES_CONTAINER_NAME}
+    restart: on-failure:3
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - "5432:5432"
-    volumes:
-      - ${pwd}/postgres_data:/var/lib/postgresql/data
+      - "${POSTGRES_PORT}:${POSTGRES_HTTP_PORT}"
     networks:
-      - backend-network
+      - ${NETWORK}
+    volumes:
+      - ${PWD}/postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
 
+  # NocoDB service (no-code platform)
   nocodb:
-    image: nocodb/nocodb
-    container_name: nocodb
+    container_name: ${NOCO_CONTAINER_NAME}
+    image: ${NOCO_IMAGE}
+    restart: on-failure:3
     environment:
-      - NOCODB_PORT=8080
-      - NOCODB_DB_HOST=postgres
-      - NOCODB_DB_PORT=5432
-      - NOCODB_DB_USER=${POSTGRES_USER}
-      - NOCODB_DB_PASS=${POSTGRES_PASSWORD}
-      - NOCODB_DB_NAME=${POSTGRES_DB}
-      - NOCODB_ADMIN_USER=${POSTGRES_USER}
-      - NOCODB_ADMIN_PASS=${POSTGRES_PASSWORD}
-      - NOCODB_ADMIN_EMAIL=${POSTGRES_USER}
-      - NOCODB_SITE_URL=http://localhost:8080
+      - DB_TYPE=${DB_TYPE}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}      
+      - DB_NAME=${DB_NAME}
     ports:
-      - "8080:8080"
-      - "8081:8081"
+      - "${NOCO_DB_PORT}:${NOCO_HTTP_PORT}"  # Expose the port for NocoDB, Bind host port 8083 to container port 8080
     volumes:
-      - ${pwd}/nocodb_data:/usr/app/nocodb
+      - ${PWD}/nocodb_data:/usr/app/data
     networks:
-      - backend-network
-    restart: always
+      - ${NETWORK}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${NOCO_HTTP_PORT}/api/healthz"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
 
+  # Watchtower service to automatically update containers
   watchtower:
-    image: containrrr/watchtower
-    container_name: watchtower
-    environment:
-      - WATCHTOWER_WATCH_ALL=true
+    container_name: ${WATCHTOWER_CONTAINER_NAME}
+    image: ${WATCHTOWER_IMAGE}
+    restart: always
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 300 --cleanup
+    ports:
+      - "${WATCHTOWER_PORT}:${WATCHTOWER_HTTP_PORT}"
     networks:
-      - backend-network
-    restart: always
+      - ${NETWORK}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${WATCHTOWER_PORT}"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
 
 volumes:
-  postgres_data:
-  rabbitmq_data:
-  redis_data:
-  nocodb_data:
+  postgres_data: {}
+  rabbitmq_data: {}
+  redis_data: {}
+  nocodb_data: {}
 
 networks:
   backend-network:

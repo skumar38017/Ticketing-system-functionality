@@ -1,12 +1,10 @@
-----------------------------------------------------------------------------------------------------------------------------------------------------------------
---> celery.txt
+----------------------------------------celery.txt------------------------------------------------------------------------------------------------------------------------
     celery -A app.workers.celery_app.celery worker --loglevel=info
     celery -A app.workers.celery_app worker --loglevel=info --concurrency=4
     celery -A app.workers.celery_app flower --port=5555
 
 
-----------------------------------------------------------------------------------------------------------------------------------------------------------------
---> migrations.txt
+----------------------------------------migrations.txt------------------------------------------------------------------------------------------------------------------------
 
 Initialize Alembic: To initialize Alembic and set up the migration folder, run:
 alembic init alembic
@@ -23,8 +21,34 @@ alembic downgrade -1
 Drop migrations: To drop all migrations, run:
 alembic downgrade base
 
+----------------------------------------RabbitMQ User----------------------------------------
+# --> in container terminal
 
---------------------------------------------------------------------------------
+docker exec -it rabbitmq rabbitmqctl add_user holi-t25 holi-t25
+docker exec -it rabbitmq rabbitmqctl set_permissions -p / holi-t25 ".*" ".*" ".*"
+docker exec -it rabbitmq rabbitmqctl set_user_tags holi-t25 administrator
+
+
+----------------------------------------Run Containers----------------------------------------
+# docker-compose 
+
+docker-compose up -d
+docker-compose down
+docker-compose up -d --build
+docker-compose up -d --build --no-cache
+docker-compose --env-file .docker.env up -d --build
+
+----------------------------------------Logs----------------------------------------
+docker logs rabbitmq
+
+----------------------------------------Delete Containers----------------------------------------
+docker stop $(docker ps -aq)
+docker rm $(docker ps -aq)
+docker rmi -f $(docker images -aq)
+docker system prune -a
+
+
+---------------------------------------RabbitMQ on local Machine-----------------------------------------
 --> rabbitmq.txt
 
 # Start RabbitMQ
@@ -53,28 +77,3 @@ sudo systemctl restart rabbitmq-server
 
 # Check RabbitMQ management plugin status    
 sudo systemctl status rabbitmq-server   
-
-docker exec -it rabbitmq rabbitmqctl add_user user password
-docker exec -it rabbitmq rabbitmqctl set_permissions -p / <username> ".*" ".*" ".*"
-docker exec -it rabbitmq rabbitmqctl set_user_tags user administrator
-
-docker logs rabbitmq
-
-
---------------------------------------------------------------------------------
-# docker-compose 
-
-docker-compose up -d
-docker-compose down
-docker-compose up -d --build
-docker-compose up -d --build --no-cache
-docker-compose --env-file docker.env up -d --build
-
-
-
---------------------------------------------------------------------------------
-docker stop $(docker ps -aq)
-docker rm $(docker ps -aq)
-docker rmi -f $(docker images -aq)
-docker system prune -a
-

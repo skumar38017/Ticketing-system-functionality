@@ -43,7 +43,7 @@ app = FastAPI(
 )
 
 # Add middleware separately
-app.add_middleware(RedisSessionMiddleware, redis_url=config.REDIS_URL)
+app.add_middleware(RedisSessionMiddleware, redis_url=config.redis_result_url)
 app.add_middleware(CustomCORSMiddleware)
 
 # Include routes
@@ -68,6 +68,8 @@ async def startup_event():
         logger.error(f"Startup tasks failed: {e}")
         sys.exit(1)  # Exit the application if setup fails
 
+
+#  
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     """
@@ -81,6 +83,7 @@ async def websocket_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         await ws_handler.disconnect(websocket)
 
+#  
 @app.get("/", include_in_schema=False)
 async def index():
     """
@@ -88,6 +91,7 @@ async def index():
     """
     return {"message": "Ticket Management System"}
 
+# 
 @app.exception_handler(HTTPException)
 async def custom_http_exception_handler(request: Request, exc: HTTPException):
     """

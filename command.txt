@@ -38,6 +38,8 @@ docker-compose up -d --build
 docker-compose up -d --build --no-cache
 docker-compose --env-file .docker.env up -d --build
 
+docker-compose --env-file .docker.env down 
+
 ----------------------------------------Logs----------------------------------------
 docker logs rabbitmq
 
@@ -77,3 +79,8 @@ sudo systemctl restart rabbitmq-server
 
 # Check RabbitMQ management plugin status    
 sudo systemctl status rabbitmq-server   
+
+
+--------------------------------------------------------------------------------
+sudo chmod -R 755 /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
+sudo usermod -aG docker $USER

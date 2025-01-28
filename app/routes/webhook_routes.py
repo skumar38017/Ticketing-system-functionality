@@ -1,10 +1,11 @@
 #  app/routes/webhook_routes.py
 
 from fastapi import APIRouter, HTTPException, Request
+from app.schemas import UserResponse
 
 router = APIRouter()
 
-@router.post("/webhook/payment", response_model=schemas.UserResponse)
+@router.post("/webhook/payment", response_model=UserResponse, status_code=200)
 async def razorpay_webhook(
     request: Request):
     try:

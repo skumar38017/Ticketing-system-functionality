@@ -19,8 +19,8 @@ async def create_qr_code(db: AsyncSession, qr_code: QRCodeCreate):
     return db_qr_code
 
 # Get a QR code by UUID
-async def get_qr_code_by_uuid(db: AsyncSession, uuid: str):
-    result = await db.execute(select(QRCode).filter(QRCode.uuid == uuid))
+async def get_qr_code_by_uuid(db: AsyncSession, user_uuid: str):
+    result = await db.execute(select(QRCode).filter(QRCode.user_uuid == user_uuid))
     return result.scalars().first()
 
 # Get all QR codes for a user
@@ -29,8 +29,8 @@ async def get_qr_codes_by_user_uuid(db: AsyncSession, user_uuid: str):
     return result.scalars().all()
 
 # Update QR code details
-async def update_qr_code(db: AsyncSession, uuid: str, qr_code_data: QRCodeCreate):
-    qr_code = await get_qr_code_by_uuid(db, uuid)
+async def update_qr_code(db: AsyncSession, user_uuid: str, qr_code_data: QRCodeCreate):
+    qr_code = await get_qr_code_by_uuid(db, user_uuid)
     if qr_code:
         qr_code.qr_code = qr_code_data.qr_code  # Update QR code data
         qr_code.qr_unique_id = qr_code_data.qr_unique_id  # Update unique ID
@@ -42,8 +42,8 @@ async def update_qr_code(db: AsyncSession, uuid: str, qr_code_data: QRCodeCreate
     return None
 
 # Delete a QR code by UUID
-async def delete_qr_code(db: AsyncSession, uuid: str):
-    qr_code = await get_qr_code_by_uuid(db, uuid)
+async def delete_qr_code(db: AsyncSession, user_uuid: str):
+    qr_code = await get_qr_code_by_uuid(db, user_uuid)
     if qr_code:
         await db.delete(qr_code)
         await db.commit()

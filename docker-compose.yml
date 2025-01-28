@@ -74,10 +74,45 @@ services:
     networks:
       - backend-network
 
+  nocodb:
+    image: nocodb/nocodb
+    container_name: nocodb
+    environment:
+      - NOCODB_PORT=8080
+      - NOCODB_DB_HOST=postgres
+      - NOCODB_DB_PORT=5432
+      - NOCODB_DB_USER=${POSTGRES_USER}
+      - NOCODB_DB_PASS=${POSTGRES_PASSWORD}
+      - NOCODB_DB_NAME=${POSTGRES_DB}
+      - NOCODB_ADMIN_USER=${POSTGRES_USER}
+      - NOCODB_ADMIN_PASS=${POSTGRES_PASSWORD}
+      - NOCODB_ADMIN_EMAIL=${POSTGRES_USER}
+      - NOCODB_SITE_URL=http://localhost:8080
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    volumes:
+      - ${pwd}/nocodb_data:/usr/app/nocodb
+    networks:
+      - backend-network
+    restart: always
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    environment:
+      - WATCHTOWER_WATCH_ALL=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - backend-network
+    restart: always
+
 volumes:
   postgres_data:
   rabbitmq_data:
   redis_data:
+  nocodb_data:
 
 networks:
   backend-network:

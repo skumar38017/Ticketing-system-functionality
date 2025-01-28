@@ -7,14 +7,11 @@ import uuid
 
 # User schema
 class UserBase(BaseModel):
-    first_name: str = Field(..., max_length=50)
-    last_name: str = Field(..., max_length=50)
+    name: str = Field(..., max_length=50)
     email: EmailStr
     phone_no: str = Field(..., max_length=10, min_length=10)
-    ticket_type: str = Field(..., max_length=50)
-    ticket_price: int
-    ticket_qty: int
     is_active: Optional[bool] = True
+
 
 
 class UserCreate(UserBase):
@@ -23,13 +20,9 @@ class UserCreate(UserBase):
 
 class UserResponse(UserBase):
     uuid: str
-    first_name: str
-    last_name: str
+    name: str
     email: str
     phone_no: str
-    ticket_type: str
-    ticket_price: int
-    ticket_qty: int
     is_active: bool
     created_at: datetime
     updated_at: datetime
@@ -38,37 +31,42 @@ class UserResponse(UserBase):
         orm_mode = True
 
 
-# Payment schema
+# Payment Schema
 class PaymentBase(BaseModel):
+    ticket_type: str = Field(..., max_length=50)
+    ticket_price: int
+    ticket_qty: int
     payment_method: str = Field(..., max_length=50)
     transaction_id: str = Field(..., max_length=50)
     transaction_status: str = Field(..., max_length=50)
-    transaction_fee: int
-    amount: int = 0
-    status: str = Field(..., max_length=50)
-    gst: int = 0
-    i_gst: int = 0
-    s_gst: int = 0
-    c_gst: int = 0
+    transaction_fee: float
+    amount: float = 0
+    status: str = Field(..., regex="^(successfully|failed|still processing)$")
+    gst: float = 0
+    i_gst: float = 0
+    s_gst: float = 0
+    c_gst: float = 0
 
 
 class PaymentCreate(PaymentBase):
     user_id: str
 
-
 class PaymentResponse(PaymentBase):
     uuid: str
     user_id: str
+    ticket_type: str
+    ticket_price: str
+    ticket_qty: str
     payment_method: str
     transaction_id: str
     transaction_status: str
-    transaction_fee: int
-    amount: int
+    transaction_fee: float
+    amount: float
     status: str
-    gst: int
-    i_gst: int
-    s_gst: int    
-    c_gst: int
+    gst: float
+    i_gst: float
+    s_gst: float    
+    c_gst: float
     created_at: datetime
     updated_at: datetime
 
@@ -82,13 +80,16 @@ class QRCodeBase(BaseModel):
     qr_unique_id: str = Field(..., max_length=50)
 
 
+
 class QRCodeCreate(QRCodeBase):
     user_id: str
+    payment_uuid: str
 
 
 class QRCodeResponse(QRCodeBase):
     uuid: str
     user_id: str
+    payment_uuid: str
     created_at: datetime
     updated_at: datetime
 
@@ -99,16 +100,21 @@ class QRCodeResponse(QRCodeBase):
 # SMS schema
 class SMSBase(BaseModel):
     mobile_no: str = Field(..., max_length=10, min_length=10)
-    message: str = Field(..., max_length=50)
+    message: str = Field(..., max_length=500)
+    message_send_confirmation: str = Field(..., regex="^(successfully|failed)$")
 
 
 class SMSCreate(SMSBase):
     user_id: str
+    payment_uuid: str
+    qr_code_uuid: str
 
 
 class SMSResponse(SMSBase):
     uuid: str
     user_id: str
+    payment_uuid: str
+    qr_code_uuid: str
     created_at: datetime
     updated_at: datetime
 
@@ -116,10 +122,10 @@ class SMSResponse(SMSBase):
         orm_mode = True
 
 
-# Email schema
+# Email Schema
 class EmailBase(BaseModel):
     email: EmailStr
-    message: str
+    message: str = Field(..., max_length=50)
 
 
 class EmailCreate(EmailBase):

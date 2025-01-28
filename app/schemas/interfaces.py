@@ -6,20 +6,19 @@ from app.schemas.schema import UserResponse, PaymentResponse, QRCodeResponse, SM
 
 class UserInterface(BaseModel):
     uuid: str
-    first_name: str
-    last_name: str
+    name: str
     email: str
     phone_no: str
-    ticket_type: str
-    ticket_price: int
-    ticket_qty: int
     is_active: bool
     created_at: str
     updated_at: str
 
 class PaymentInterface(BaseModel):
     uuid: str
-    user_id: str
+    user_uuid: str
+    ticket_type: str
+    ticket_price: int
+    ticket_qty: int
     payment_method: str
     transaction_id: str
     transaction_status: str
@@ -35,19 +34,23 @@ class PaymentInterface(BaseModel):
 
 class QRCodeInterface(BaseModel):
     uuid: str
-    user_id: str
+    user_uuid: str
     qr_code: str
     qr_unique_id: str
+    payment_uuid: str
     created_at: str
     updated_at: str
 
 class SMSInterface(BaseModel):
     uuid: str
-    user_id: str
+    user_uuid: str
+    payment_uuid: str
     mobile_no: str
     message: str
+    message_send_confirmation: str
     created_at: str
     updated_at: str
+
 
 class EmailInterface(BaseModel):
     uuid: str
@@ -59,20 +62,20 @@ class EmailInterface(BaseModel):
 
 class UserResponseInterface(BaseModel):
     uuid: str
-    first_name: str
-    last_name: str
+    name: str
     email: str
     phone_no: str
-    ticket_type: str
-    ticket_price: int
-    ticket_qty: int
     is_active: bool
     created_at: str
     updated_at: str
 
+
 class PaymentResponseInterface(BaseModel):
     uuid: str
-    user_id: str
+    user_uuid: str
+    ticket_type: str
+    ticket_price: int
+    ticket_qty: int
     payment_method: str
     transaction_id: str
     transaction_status: str
@@ -88,19 +91,22 @@ class PaymentResponseInterface(BaseModel):
 
 class QRCodeResponseInterface(BaseModel):
     uuid: str
-    user_id: str
+    user_uuid: str
     qr_code: str
     qr_unique_id: str
+    payment_uuid: str
     created_at: str
     updated_at: str
 
 class SMSResponseInterface(BaseModel):
     uuid: str
-    user_id: str
+    user_uuid: str
     mobile_no: str
     message: str
+    message_send_confirmation: str
     created_at: str
     updated_at: str
+
 
 class EmailResponseInterface(BaseModel):
     uuid: str
@@ -109,3 +115,4 @@ class EmailResponseInterface(BaseModel):
     message: str
     created_at: str
     updated_at: str
+

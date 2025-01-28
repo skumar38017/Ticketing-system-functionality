@@ -16,6 +16,11 @@ ticket_management_system/
 │   │   ├── __init__.py 
 |   |   ├── interfaces.py  # User-related operations interface
 │   │   ├── webhook_interface.py  # Webhook-related operations interface
+|   |-- curd_operation
+|   |   ├── __init__.py
+|   |   ├── user_curd.py       # User-related operations
+|   |   ├── payment_curd.py   # Payment-related operations
+|   |   ├── qr_code_curd.py   # QR code-related operations
 │   ├── tasks/                   # Celery tasks
 │   │   ├── __init__.py
 │   │   ├── otp_task.py          # Task to send OTP
@@ -62,3 +67,4 @@ ticket_management_system/
 celery -A app.workers.celery_app.celery worker --loglevel=info
 celery -A app.workers.celery_app.celery worker --loglevel=info
 celery -A app.workers.celery_app worker --loglevel=info --concurrency=4
+celery -A app.workers.celery_app flower --port=5555

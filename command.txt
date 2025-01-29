@@ -85,6 +85,13 @@ sudo systemctl status rabbitmq-server
 -------------------------------------------------postgres-------------------------------
 sudo chmod -R 755 /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
 sudo usermod -aG docker $USER
+ls -ld /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
+chmod -R u+rw /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
+chmod 777 /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
+
+
+-------------------------------------------------redis-------------------------------
+redis-cli -h redis -p 6379 ping
 
 -------------------------------------------------fastapi-------------------------------
 

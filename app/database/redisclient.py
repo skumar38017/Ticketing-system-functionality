@@ -15,6 +15,7 @@ class RedisClient:
         try:
             self.redis = Redis.from_url(config.redis_broker_url)
             logger.info("Redis client initialized.")
+            print("Redis client initialized.")
         except Exception as e:
             logger.error(f"Failed to initialize Redis client: {e}")
             raise
@@ -26,6 +27,7 @@ class RedisClient:
         try:
             self.redis.ping()
             logger.info("Successfully connected to Redis.")
+            print("Successfully connected to Redis.")
         except Exception as e:
             logger.error(f"Error connecting to Redis: {e}")
             raise
@@ -37,6 +39,7 @@ class RedisClient:
         try:
             result = self.redis.execute_command(*args, **kwargs)
             logger.info(f"Executed Redis command: {args[0]}")
+            print(f"Executed Redis command: {args[0]}")
             return result
         except Exception as e:
             logger.error(f"Error executing Redis command {args[0]}: {e}")
@@ -49,6 +52,7 @@ class RedisClient:
         try:
             self.redis.close()
             logger.info("Disconnected from Redis.")
+            print("Disconnected from Redis.")
         except Exception as e:
             logger.error(f"Error disconnecting from Redis: {e}")
             raise

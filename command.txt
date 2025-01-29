@@ -37,7 +37,9 @@ docker-compose down
 docker-compose up -d --build
 docker-compose up -d --build --no-cache
 docker-compose --env-file .docker.env up -d --build
-docker-compose --env-file .docker.env down 
+
+docker-compose --env-file .docker.env down
+docker-compose --env-file .docker.env up -d  
 
 ----------------------------------------Logs----------------------------------------
 docker logs rabbitmq
@@ -84,4 +86,11 @@ sudo systemctl status rabbitmq-server
 sudo chmod -R 755 /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
 sudo usermod -aG docker $USER
 
--------------------------------------------------nocodb-------------------------------
+-------------------------------------------------fastapi-------------------------------
+
+uvicorn main:app --host 0.0.0.0 --port 8000
+uvicorn app.main:app --reload
+
+
+-------------------------------------------------export path-------------------------------
+export PYTHONPATH=$PYTHONPATH:/home/tagglab/Videos/Neon-Stdio-Holi-T25/app

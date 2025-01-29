@@ -5,9 +5,9 @@ from fastapi.responses import JSONResponse
 from app.routes import user_routes, webhook_routes, websocket_routes
 from app.workers.celery_app import celery_app
 from app.database.database import get_db_connection
-from app.database import UserRegister
-from app.tasks import send_welcome_email
-from app.services import WebSocketHandler
+from app.database.models import User
+from app.tasks.email_tasks import send_welcome_email
+from app.services.websocket_service import WebSocketHandler
 from app.config import config
 from app.settings import settings
 from app.middleware.cors_middleware import CustomCORSMiddleware
@@ -111,4 +111,4 @@ async def custom_http_exception_handler(request: Request, exc: HTTPException):
         )
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

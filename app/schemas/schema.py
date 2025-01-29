@@ -3,7 +3,6 @@
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 from datetime import datetime
-import uuid
 
 # User schema
 class UserBase(BaseModel):
@@ -11,7 +10,6 @@ class UserBase(BaseModel):
     email: EmailStr
     phone_no: str = Field(..., max_length=10, min_length=10)
     is_active: Optional[bool] = True
-
 
 
 class UserCreate(UserBase):
@@ -28,7 +26,7 @@ class UserResponse(UserBase):
     updated_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # Payment Schema
@@ -48,11 +46,12 @@ class PaymentBase(BaseModel):
     c_gst: float = 0
     total_tax: float = 0
     total_amount: float = 0
-    transaction_status: str = Field(..., regex="^(successfully|failed|still processing)$")
+    transaction_status: str = Field(..., pattern="^(successfully|failed|still processing)$")
 
 
 class PaymentCreate(PaymentBase):
     user_id: str
+
 
 class PaymentResponse(PaymentBase):
     uuid: str
@@ -77,14 +76,13 @@ class PaymentResponse(PaymentBase):
     updated_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # QR Code schema
 class QRCodeBase(BaseModel):
     qr_code: str = Field(..., max_length=50)
     qr_unique_id: str = Field(..., max_length=50)
-
 
 
 class QRCodeCreate(QRCodeBase):
@@ -100,14 +98,14 @@ class QRCodeResponse(QRCodeBase):
     updated_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # SMS schema
 class SMSBase(BaseModel):
     mobile_no: str = Field(..., max_length=10, min_length=10)
     message: str = Field(..., max_length=500)
-    message_send_confirmation: str = Field(..., regex="^(successfully|failed)$")
+    message_send_confirmation: str = Field(..., pattern="^(successfully|failed)$")
 
 
 class SMSCreate(SMSBase):
@@ -125,7 +123,7 @@ class SMSResponse(SMSBase):
     updated_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # Email Schema
@@ -145,4 +143,4 @@ class EmailResponse(EmailBase):
     updated_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True

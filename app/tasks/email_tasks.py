@@ -4,7 +4,7 @@ from app.config import config
 from app.workers.celery_app import celery_app
 from app.utils.email_utils import send_email
 
-celery = Celery('tasks', broker=config.CELERY_BROKER_URL)
+celery = Celery('tasks', broker=config.celery_broker_url)
 
 @celery_app.task
 def send_welcome_email(user_email: str, qr_code_image: bytes):

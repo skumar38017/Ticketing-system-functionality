@@ -5,7 +5,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 import uuid
 import datetime
-from base import Base
+from app.database.database import Base
 
 Base = declarative_base()
 

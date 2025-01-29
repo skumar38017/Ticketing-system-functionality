@@ -4,6 +4,12 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from app.config import config
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+logger.info("Database connection established.")
 
 # Create async SQLAlchemy engine
 engine = create_async_engine(config.async_database_url, echo=True)

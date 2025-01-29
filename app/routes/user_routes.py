@@ -1,9 +1,9 @@
-#  app/routes/user_routes.py
+# app/routes/user_routes.py
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.database import get_db
-from app.schemas import UserCreate, UserResponse
+from app.schemas import UserCreate, UserResponse, UserBase  # These should now be available
 from app.curd_operation.user_curd import create_user, get_user_by_uuid, update_user, delete_user
 
 router = APIRouter()

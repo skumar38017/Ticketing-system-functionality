@@ -85,6 +85,7 @@ sudo systemctl status rabbitmq-server
 -------------------------------------------------postgres-------------------------------
 sudo chmod -R 755 /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
 sudo usermod -aG docker $USER
+
 ls -ld /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
 chmod -R u+rw /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
 chmod 777 /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
@@ -105,3 +106,6 @@ uvicorn app.main:app --reload
 
 -------------------------------------------------export path-------------------------------
 export PYTHONPATH=$PYTHONPATH:/home/tagglab/Videos/Neon-Stdio-Holi-T25/app
+
+-----------------
+newgrp docker

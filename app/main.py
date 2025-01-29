@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse
-from app.routes import user_routes, webhook_routes, websocket_routes
+from app.routes import user_routes, webhook_routes, websocket_routes, qr_code_routes
 from app.workers.celery_app import celery_app
 from app.database.database import get_db_connection, get_db, login_to_database
 from app.database.redisclient import redis_client
@@ -47,8 +47,18 @@ app = FastAPI(
 app.add_middleware(RedisSessionMiddleware, redis_url=config.redis_result_url)
 app.add_middleware(CustomCORSMiddleware)
 
+
+#  Root 
+@app.get("/", include_in_schema=True)
+async def index():
+    """
+    Root endpoint.
+    """
+    return {"message": "Ticket Management System"}
+
 # Include routes
 app.include_router(user_routes.router)
+app.include_router(qr_code_routes.router)
 app.include_router(webhook_routes.router)
 app.include_router(websocket_routes.router)
 
@@ -69,6 +79,9 @@ async def startup_event():
         print("Starting application and checking Redis connection...")
         redis_client.connect()
         print("Redis connection successful.")
+            # Print out all registered routes
+        for route in app.routes:
+            print(route.path, route.name)
         # Placeholder for startup logic (e.g., database initialization or worker setup)
         logger.info("Startup tasks completed successfully.")
     except Exception as e:
@@ -89,14 +102,6 @@ async def websocket_endpoint(websocket: WebSocket):
             await ws_handler.send_message(f"Message received: {data}")
     except WebSocketDisconnect:
         await ws_handler.disconnect(websocket)
-
-#  
-@app.get("/", include_in_schema=False)
-async def index():
-    """
-    Root endpoint.
-    """
-    return {"message": "Ticket Management System"}
 
 # 
 @app.exception_handler(HTTPException)

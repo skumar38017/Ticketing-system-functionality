@@ -1,10 +1,11 @@
     #  app/database/models.py
 
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Enum
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Enum,Float
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 import uuid
 import datetime
+from base import Base
 
 Base = declarative_base()
 
@@ -34,37 +35,41 @@ class User(Base):
 
 class Payment(Base):
     __tablename__ = "payments"
+
     # Columns
     uuid = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     user_uuid = Column(String(36), ForeignKey('users.uuid'), nullable=False)
+    ticket_description = Column(String(500), nullable=False)  # E.g., Event ticket description
     ticket_type = Column(String(50), nullable=False)  # E.g., Regular, VIP
     ticket_price = Column(Integer, nullable=False)  # Price per ticket
     ticket_qty = Column(Integer, nullable=False)  # Number of tickets purchased
     payment_method = Column(String(50), nullable=False)  # E.g., Debit Card, UPI, etc.
     transaction_id = Column(String(50), nullable=False)  # Transaction reference ID
-    amount = Column(float, nullable=False, default=0)  # Total payment amount
-    disscount = Column(float, nullable=False, default=0)  # Disscount amount
-    gst = Column(float, nullable=False, default=0)  # Total GST applied
-    i_gst = Column(float, nullable=False, default=0)  # IGST applied
-    s_gst = Column(float, nullable=False, default=0)  # SGST applied
-    c_gst = Column(float, nullable=False, default=0)  # CGST applied
-    transaction_fee = Column(float, nullable=False)  # Fee associated with the payment
-    total_amount = Column(float, nullable=False, default=0)  # Total payment amount
-    transaction_status = Column(Enum('successfully', 'failed', 'still processing', name='payment_status'), nullable=False)  # E.g., Success, Failed
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)  # Record creation time
+    discount = Column(Float, nullable=False, default=0.0)  # Discount amount
+    transaction_fee = Column(Float, nullable=False)  # Fee associated with the payment
+    invoice_amount = Column(Float, nullable=False, default=0.0)  # Invoice amount before taxes
+    gst = Column(Float, nullable=False, default=0.0)  # Total GST applied
+    i_gst = Column(Float, nullable=False, default=0.0)  # IGST applied
+    s_gst = Column(Float, nullable=False, default=0.0)  # SGST applied
+    c_gst = Column(Float, nullable=False, default=0.0)  # CGST applied
+    total_tax = Column(Float, nullable=False, default=0.0)  # Total tax applied
+    total_amount = Column(Float, nullable=False, default=0.0)  # Total amount after taxes and fees
+    transaction_status = Column(Enum('successfully', 'failed', 'still processing', 'cancelled', 'due', name='payment_status'), nullable=False)  # Payment status
+    issued_date = Column(DateTime, default=datetime.datetime.utcnow)  # Record creation time
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)  # Last update time
-    
+
     # Relationship with User model
     user = relationship("User", back_populates="payments")
-    
+
     # __repr__ for debugging and logging
     def __repr__(self):
-        return (f"<Payment(id={self.uuid}, user_id={self.user_uuid}, ticket_type='{self.ticket_type}', "
-                f"ticket_price={self.ticket_price}, ticket_qty={self.ticket_qty}, "
-                f"payment_method='{self.payment_method}', transaction_id='{self.transaction_id}', transaction_fee='{self.transaction_fee}', "
-                f"amount={self.amount}, disscount='{self.disscount}', gst={self.gst}, i_gst={self.i_gst}, s_gst={self.s_gst}, c_gst={self.c_gst}, "
-                f"transaction_status='{self.transaction_status}', created_at='{self.created_at}', updated_at='{self.updated_at}')>")
-
+        return (f"<Payment(uuid={self.uuid}, user_uuid={self.user_uuid}, ticket_description='{self.ticket_description}', "
+                f"ticket_type='{self.ticket_type}', ticket_price={self.ticket_price}, ticket_qty={self.ticket_qty}, "
+                f"payment_method='{self.payment_method}', transaction_id='{self.transaction_id}', transaction_fee={self.transaction_fee}, "
+                f"invoice_amount={self.invoice_amount}, discount={self.discount}, gst={self.gst}, i_gst={self.i_gst}, "
+                f"s_gst={self.s_gst}, c_gst={self.c_gst}, total_tax={self.total_tax}, total_amount={self.total_amount}, "
+                f"transaction_status='{self.transaction_status}', issued_date='{self.issued_date}', updated_at='{self.updated_at}')>")
+    
 class QRCode(Base):
     __tablename__ = "qr_codes"
     # Columns

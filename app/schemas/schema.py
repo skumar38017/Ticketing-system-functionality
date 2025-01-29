@@ -33,18 +33,20 @@ class UserResponse(UserBase):
 
 # Payment Schema
 class PaymentBase(BaseModel):
+    ticket_description: str = Field(..., max_length=500)
     ticket_type: str = Field(..., max_length=50)
     ticket_price: int
     ticket_qty: int
     payment_method: str = Field(..., max_length=50)
     transaction_id: str = Field(..., max_length=50)
-    amount: float = 0
     disscount: float = 0
     transaction_fee: float
+    invoice_amount: float = 0
     gst: float = 0
     i_gst: float = 0
     s_gst: float = 0
     c_gst: float = 0
+    total_tax: float = 0
     total_amount: float = 0
     transaction_status: str = Field(..., regex="^(successfully|failed|still processing)$")
 
@@ -55,21 +57,23 @@ class PaymentCreate(PaymentBase):
 class PaymentResponse(PaymentBase):
     uuid: str
     user_id: str
+    ticket_description: str
     ticket_type: str
     ticket_price: str
     ticket_qty: str
     payment_method: str
     transaction_id: str
-    amount: float
     disscount: float
     transaction_fee: float
+    invoice_amount: float
     gst: float
     i_gst: float
     s_gst: float    
     c_gst: float
+    total_tax: float
     total_amount: float
     transaction_status: str
-    created_at: datetime
+    issued_date: datetime
     updated_at: datetime
 
     class Config:

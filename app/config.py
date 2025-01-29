@@ -95,6 +95,11 @@ class Config:
     @property
     def otp_expiration_time(self) -> int:
         return settings.OTP_EXPIRATION_TIME
+    
+    # Data Storage Expiration Time
+    @property
+    def expiration_time(self) -> int:
+        return settings.EXPIRATION_TIME
 
     # Email Settings
     @property

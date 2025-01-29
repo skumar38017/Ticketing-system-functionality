@@ -14,8 +14,8 @@ class User(Base):
     # Columns
     uuid = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String(50), nullable=False)
-    email = Column(String(100), nullable=False, unique=True)
-    phone_no = Column(String(10), nullable=False)
+    email = Column(String(100), nullable=False)
+    phone_no = Column(String(16), nullable=False)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)

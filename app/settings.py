@@ -63,6 +63,9 @@ class Settings:
     # OTP Settings
     OTP_EXPIRATION_TIME: int = int(os.getenv("OTP_EXPIRATION_TIME", 300))
 
+    # Data Storage Settings
+    EXPIRATION_TIME: str = os.getenv("EXPIRATION_TIME", "600")
+
     # Email Configuration
     EMAIL_ADDRESS: str = os.getenv("EMAIL_ADDRESS", "your_email_address")
     EMAIL_PASSWORD: str = os.getenv("EMAIL_PASSWORD", "your_email_password")

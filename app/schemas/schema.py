@@ -1,20 +1,26 @@
 #  app/schemas/user_schema.py
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional
 from datetime import datetime
+from app.utils.validator import validate_phone  # Import your custom validator
+
 
 # User schema
 class UserBase(BaseModel):
     name: str = Field(..., max_length=50)
     email: EmailStr
-    phone_no: str = Field(..., max_length=10, min_length=10)
-    is_active: Optional[bool] = True
-
+    phone_no: str = Field(..., max_length=16, min_length=10)  # Adjusted for international support
+    is_active: Optional[bool] = True  # Default value is set here
+    
+    # Use @field_validator in Pydantic V2
+    @field_validator("phone_no")
+    @classmethod
+    def validate_phone_no(cls, value):
+        return validate_phone(value)
 
 class UserCreate(UserBase):
     pass
-
 
 class UserResponse(UserBase):
     uuid: str
@@ -26,8 +32,7 @@ class UserResponse(UserBase):
     updated_at: datetime
 
     class Config:
-        from_attributes = True
-
+        from_attributes = True  
 
 # Payment Schema
 class PaymentBase(BaseModel):

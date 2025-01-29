@@ -38,9 +38,9 @@ app = FastAPI(
     title="Ticket Management System",
     description="This is a ticket management system for the Neon-Stdio Holi-T25 course.",
     version="1.1.0",
-    openapi_url=openapi_url,
-    docs_url=docs_url,
-    redoc_url=redoc_url,
+    openapi_url="/openapi.json",  # Always enable OpenAPI schema
+    docs_url="/docs",            # Always enable Swagger UI
+    redoc_url="/redoc",          # Always enable ReDoc
 )
 
 # Add middleware separately

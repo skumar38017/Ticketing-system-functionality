@@ -13,7 +13,7 @@ class RedisClient:
         Initialize Redis client with the broker URL from the configuration.
         """
         try:
-            self.redis = Redis.from_url(config.redis_broker_url)
+            self.redis = Redis.from_url(config.redis_broker_url, decode_responses=True)
             logger.info("Redis client initialized.")
             print("Redis client initialized.")
         except Exception as e:

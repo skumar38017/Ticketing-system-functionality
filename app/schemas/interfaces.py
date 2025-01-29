@@ -16,21 +16,23 @@ class UserInterface(BaseModel):
 class PaymentInterface(BaseModel):
     uuid: str
     user_uuid: str
+    ticket_description: str
     ticket_type: str
     ticket_price: int
     ticket_qty: int
     payment_method: str
     transaction_id: str
-    amount: float
-    disscount: float
+    discount: float
     transaction_fee: float
+    invoice_amount: float
     gst: float
     i_gst: float
     s_gst: float
     c_gst: float
+    total_tax: float = 0
     total_amount: float = 0
     transaction_status: str
-    created_at: str
+    issued_date: str
     updated_at: str
 
 class QRCodeInterface(BaseModel):
@@ -74,21 +76,23 @@ class UserResponseInterface(BaseModel):
 class PaymentResponseInterface(BaseModel):
     uuid: str
     user_uuid: str
+    ticket_description: str
     ticket_type: str
     ticket_price: int
     ticket_qty: int
     payment_method: str
     transaction_id: str
-    amount: float
     disscount: float
     transaction_fee: float
+    invoice_amount: float
     gst: float
     i_gst: float
     s_gst: float
     c_gst: float
+    total_tax: float = 0
     total_amount: float = 0
     transaction_status: str
-    created_at: str
+    issued_date: str
     updated_at: str
 
 class QRCodeResponseInterface(BaseModel):

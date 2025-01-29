@@ -2,10 +2,11 @@
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse
-from app.routes import user_routes, webhook_routes, websocket_routes
+from app.routes import user_routes, webhook_routes, websocket_routes, qr_code_routes
 from app.workers.celery_app import celery_app
-from app.database.database import get_db_connection
-# from app.database import UserRegister
+from app.database.database import get_db_connection, get_db, login_to_database
+from app.database.redisclient import redis_client
+from app.database.models import User
 from app.tasks.email_tasks import send_welcome_email
 from app.services.websocket_service import WebSocketHandler
 from app.config import config
@@ -37,17 +38,27 @@ app = FastAPI(
     title="Ticket Management System",
     description="This is a ticket management system for the Neon-Stdio Holi-T25 course.",
     version="1.1.0",
-    openapi_url=openapi_url,
-    docs_url=docs_url,
-    redoc_url=redoc_url,
+    openapi_url="/openapi.json",  # Always enable OpenAPI schema
+    docs_url="/docs",            # Always enable Swagger UI
+    redoc_url="/redoc",          # Always enable ReDoc
 )
 
 # Add middleware separately
 app.add_middleware(RedisSessionMiddleware, redis_url=config.redis_result_url)
 app.add_middleware(CustomCORSMiddleware)
 
+
+#  Root 
+@app.get("/", include_in_schema=True)
+async def index():
+    """
+    Root endpoint.
+    """
+    return {"message": "Ticket Management System"}
+
 # Include routes
 app.include_router(user_routes.router)
+app.include_router(qr_code_routes.router)
 app.include_router(webhook_routes.router)
 app.include_router(websocket_routes.router)
 
@@ -62,12 +73,23 @@ async def startup_event():
     logger.info(f"Application started in {'Development' if settings.DEV_MODE else 'Production'} mode.")
     logger.info("Running setup tasks.")
     try:
+        print("Starting application and checking DB connection...")
+        await login_to_database()
+        print("DB connection successful.")
+        print("Starting application and checking Redis connection...")
+        redis_client.connect()
+        print("Redis connection successful.")
+            # Print out all registered routes
+        for route in app.routes:
+            print(route.path, route.name)
         # Placeholder for startup logic (e.g., database initialization or worker setup)
         logger.info("Startup tasks completed successfully.")
     except Exception as e:
         logger.error(f"Startup tasks failed: {e}")
         sys.exit(1)  # Exit the application if setup fails
 
+
+#  
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     """
@@ -81,13 +103,7 @@ async def websocket_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         await ws_handler.disconnect(websocket)
 
-@app.get("/", include_in_schema=False)
-async def index():
-    """
-    Root endpoint.
-    """
-    return {"message": "Ticket Management System"}
-
+# 
 @app.exception_handler(HTTPException)
 async def custom_http_exception_handler(request: Request, exc: HTTPException):
     """
@@ -107,4 +123,4 @@ async def custom_http_exception_handler(request: Request, exc: HTTPException):
         )
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

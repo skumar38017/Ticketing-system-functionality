@@ -13,7 +13,7 @@ services:
       RABBITMQ_PASSWORD: ${RABBITMQ_PASS}
       RABBITMQ_VHOST: ${RABBITMQ_VHOST}
     env_file:
-      - ./docker.env
+      - ./.docker.env
     volumes:
       - ${PWD}/rabbitmq_data:/var/lib/rabbitmq
       - ${PWD}/rabbitmq_data/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
@@ -33,7 +33,7 @@ services:
     ports:
       - "${REDIS_PORT}:${REDIS_HTTP_PORT}"
     env_file:
-      - ./docker.env
+      - ./.docker.env
     environment:
       - REDIS_DB_BROKER=${REDIS_DB_BROKER}
       - REDIS_DB_RESULT=${REDIS_DB_RESULT}
@@ -52,12 +52,13 @@ services:
   celery-beat:
     build:
       context: .
+      dockerfile: ./Dockerfile.celery 
       args:
         RABBITMQ_URL: ${RABBITMQ_URL}
     container_name: celery-beat-container
     command: celery -A app.workers.celery_app beat --loglevel=info
     env_file:
-      - ./docker.env
+      - ./.docker.env
     environment:
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
     depends_on:
@@ -77,12 +78,13 @@ services:
   celery:
     build:
       context: .
+      dockerfile: ./Dockerfile.celery
       args:
         RABBITMQ_URL: ${RABBITMQ_URL}
     container_name: celery-container
     command: celery -A app.workers.celery_app worker --loglevel=info
     env_file:
-      - ./docker.env
+      - ./.docker.env
     environment:
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
     depends_on:
@@ -111,7 +113,7 @@ services:
     ports:
       - "${POSTGRES_PORT}:${POSTGRES_HTTP_PORT}"
     env_file:
-      - ./docker.env
+      - ./.docker.env
     networks:
       - ${NETWORK}
     volumes:
@@ -134,10 +136,11 @@ services:
       - DB_USER=${DB_USER}
       - DB_PASS=${DB_PASS}
       - DB_NAME=${DB_NAME}
+      - NC_DB=${NC_DB}
     ports:
       - "${NOCO_DB_PORT}:${NOCO_HTTP_PORT}"
     env_file:
-      - ./docker.env
+      - ./.docker.env
     volumes:
       - ${PWD}/nocodb_data:/usr/app/data
     networks:
@@ -164,7 +167,7 @@ services:
     ports:
       - "${WATCHTOWER_PORT}:${WATCHTOWER_HTTP_PORT}"
     env_file:
-      - ./docker.env
+      - ./.docker.env
     networks:
       - ${NETWORK}
     healthcheck:

@@ -22,7 +22,7 @@ async def get_qr_code_route(uuid: str, db: AsyncSession = Depends(get_db)):
     return qr_code
 
 # Route to get all QR codes for a user
-@router.get("/qr-codes/user/{user_uuid}", response_model=list[QRCodeResponse])
+@router.get("/qr-codes/{user_uuid}", response_model=list[QRCodeResponse])
 async def get_qr_codes_by_user_route(user_uuid: str, db: AsyncSession = Depends(get_db)):
     qr_codes = await get_qr_codes_by_user_uuid(db=db, user_uuid=user_uuid)
     return qr_codes

@@ -4,7 +4,8 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Requ
 from fastapi.responses import JSONResponse
 from app.routes import user_routes, webhook_routes, websocket_routes
 from app.workers.celery_app import celery_app
-from app.database.database import get_db_connection
+from app.database.database import get_db_connection, get_db, login_to_database
+from app.database.redisclient import redis_client
 from app.database.models import User
 from app.tasks.email_tasks import send_welcome_email
 from app.services.websocket_service import WebSocketHandler
@@ -62,6 +63,12 @@ async def startup_event():
     logger.info(f"Application started in {'Development' if settings.DEV_MODE else 'Production'} mode.")
     logger.info("Running setup tasks.")
     try:
+        print("Starting application and checking DB connection...")
+        await login_to_database()
+        print("DB connection successful.")
+        print("Starting application and checking Redis connection...")
+        redis_client.connect()
+        print("Redis connection successful.")
         # Placeholder for startup logic (e.g., database initialization or worker setup)
         logger.info("Startup tasks completed successfully.")
     except Exception as e:

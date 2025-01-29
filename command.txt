@@ -89,6 +89,7 @@ ls -ld /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
 chmod -R u+rw /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
 chmod 777 /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
 
+psql -h localhost -U postgres -d postgres
 
 -------------------------------------------------redis-------------------------------
 redis-cli -h redis -p 6379 ping

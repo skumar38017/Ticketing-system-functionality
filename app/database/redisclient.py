@@ -56,3 +56,36 @@ class RedisClient:
         except Exception as e:
             logger.error(f"Error disconnecting from Redis: {e}")
             raise
+
+    def get_redis_status(self):
+        """
+        Fetch and print Redis server status.
+        """
+        try:
+            # Fetch general information about Redis server
+            info = self.redis.info()
+            logger.info(f"Redis Server Information: {info}")
+            print("Redis Server Information:")
+            for key, value in info.items():
+                print(f"{key}: {value}")
+        except Exception as e:
+            logger.error(f"Error fetching Redis status: {e}")
+            raise
+
+    def get_active_clients(self):
+        """
+        Fetch and print active Redis clients.
+        """
+        try:
+            # Get the list of connected clients
+            clients = self.redis.client_list()
+            logger.info(f"Active Redis Clients: {clients}")
+            print("Active Redis Clients:")
+            for client in clients:
+                print(client)
+        except Exception as e:
+            logger.error(f"Error fetching active Redis clients: {e}")
+            raise
+
+# Create a RedisClient instance
+redis_client = RedisClient()

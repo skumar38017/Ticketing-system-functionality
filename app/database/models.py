@@ -60,6 +60,9 @@ class Payment(Base):
 
     # Relationship with User model
     user = relationship("User", back_populates="payments")
+    qr_codes = relationship("QRCode", back_populates="payment")
+    sms = relationship("SMS", back_populates="payment")
+    emails = relationship("Email", back_populates="payment")  # Ensure this is here
 
     # __repr__ for debugging and logging
     def __repr__(self):
@@ -84,6 +87,8 @@ class QRCode(Base):
     # Relationships
     user = relationship("User", back_populates="qr_codes")  # Relationship with User model
     payment = relationship("Payment", back_populates="qr_codes")  # Relationship with Payment model
+    sms = relationship("SMS", back_populates="qr_code")
+    emails = relationship("Email", back_populates="qr_code")
 
     # __repr__ for debugging and logging
     def __repr__(self):
@@ -108,6 +113,7 @@ class SMS(Base):
     user = relationship("User", back_populates="sms")  # Relationship with User model
     payment = relationship("Payment", back_populates="sms")  # Relationship with Payment model
     qr_code = relationship("QRCode", back_populates="sms")  # Relationship with QRCode model
+    emails = relationship("Email", back_populates="sms")
 
     # __repr__ for debugging and logging
     def __repr__(self):
@@ -124,6 +130,13 @@ class Email(Base):
     message = Column(String(50), nullable=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+    
+    # Relationships
     user = relationship("User", back_populates="emails")
+    payment = relationship("Payment", back_populates="emails")  # Changed this from 'Payment' to 'payment'
+    qr_code = relationship("QRCode", back_populates="emails")
+    sms = relationship("SMS", back_populates="emails")
+    
     def __repr__(self):
         return f"<Email(id={self.uuid}, user_id={self.user_uuid}, email='{self.email}', message='{self.message}', created_at='{self.created_at}', updated_at='{self.updated_at}')>"
+    

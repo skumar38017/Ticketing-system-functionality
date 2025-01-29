@@ -1,5 +1,6 @@
 # app/services/websocket_service.py
-from fastapi import WebSocket
+import asyncio
+from fastapi import WebSocket, WebSocketDisconnect
 from typing import List
 
 class WebSocketHandler:
@@ -26,7 +27,11 @@ class WebSocketHandler:
         Sends a message to all active WebSocket connections.
         """
         for connection in self.active_connections:
-            await connection.send_text(message)
+            try:
+                await connection.send_text(message)
+            except WebSocketDisconnect:
+                print("A connection was disconnected while sending a message.")
+                self.active_connections.remove(connection)
 
     async def broadcast(self, message: str, websocket: WebSocket):
         """
@@ -34,4 +39,8 @@ class WebSocketHandler:
         """
         for connection in self.active_connections:
             if connection != websocket:
-                await connection.send_text(f"Message from client: {message}")
+                try:
+                    await connection.send_text(f"Message from client: {message}")
+                except WebSocketDisconnect:
+                    print(f"Connection lost with client: {connection.client}")
+                    self.active_connections.remove(connection)

@@ -23,13 +23,10 @@ import sys
 import qrcode
 import uvicorn
 
-from app.tasks.otp_task import OTPTask
 from app.services.otp_service import OTPService
 
 
 # Initialize OTPTask and OTPService
-otp_task = OTPTask()
-otp_service = OTPService(otp_task)
 router = APIRouter()
 ws_handler = WebSocketHandler()
 

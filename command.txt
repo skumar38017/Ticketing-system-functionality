@@ -1,3 +1,5 @@
+
+export PYTHONPATH=/home/tagglab/Videos/Neon-Stdio-Holi-T25
 ----------------------------------------celery.txt------------------------------------------------------------------------------------------------------------------------
     celery -A app.workers.celery_app.celery worker --loglevel=info
     celery -A app.workers.celery_app worker --loglevel=info --concurrency=4
@@ -114,3 +116,38 @@ newgrp docker
 
 --------------------------------
 https://websocketking.com/
+
+
+------------------------------------------------Celery-------------------------------
+docker exec -it celery-container bash
+celery -A app.workers.celery_app shell
+
+ # Start the Celery worker with the -E flag to enable task monitoring:
+celery -A app.workers.celery_app worker --loglevel=info --events
+celery -A app.workers.celery_app inspect registered
+
+
+celery -A app.workers.celery_app worker --loglevel=info -Q otp_queue
+celery -A app.workers.celery_app worker --loglevel=info -Q payment_queue
+celery -A app.workers.celery_app worker --loglevel=info -Q qr_queue
+celery -A app.workers.celery_app worker --loglevel=info -Q email_queue
+celery -A app.workers.celery_app worker --loglevel=info -Q otp_queue -n otp_worker
+celery -A app.workers.celery_app worker --loglevel=info -Q payment_queue -n payment_worker
+celery -A app.workers.celery_app worker --loglevel=info -Q qr_queue -n qr_worker        
+
+
+    celery -A app.workers.celery_app.celery_app worker --loglevel=info
+    celery -A app.workers.celery_app.celery_app worker --loglevel=info --concurrency=4
+    celery -A app.workers.celery_app.celery_app flower --port=5555
+
+celery -A app.workers.celery_app.celery_app worker --loglevel=info --queues=otp_queue
+celery -A app.workers.celery_app.celery_app worker --loglevel=info
+celery -A app.workers.celery_app.celery_app flower --port=5555
+celery -A app.workers.celery_app.celery_app worker --loglevel=info --concurrency=4
+celery -A app.workers.celery_app.celery_app worker --loglevel=info --concurrency=4 --queues=otp_queue   
+
+celery -A app.workers.celery_app status
+celery -A app.workers.celery_app inspect active
+
+
+docker inspect --format='{{json .State.Health}}' celery-container

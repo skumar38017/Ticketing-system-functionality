@@ -27,5 +27,5 @@ celery_app.conf.task_routes = {
     "app.tasks.email_tasks.*": {"queue": "email_queue"},  # Email-related tasks routed to 'email_queue'
 }
 
-# Optional: Auto-discover tasks in the project (if using Django or similar)
+# Autodiscover tasks in the project
 celery_app.autodiscover_tasks(["app.tasks"])

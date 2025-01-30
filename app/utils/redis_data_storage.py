@@ -41,33 +41,32 @@ class RedisDataStorage:
         return f"user_data_{RedisDataStorage.hash_data(combined_data)}"
 
     @staticmethod
-    def store_data_in_redis(key: str, data: dict, session: str, expiration: int = config.expiration_time) -> None:
+    def store_data_in_redis(key: str, data: dict, session_id: str, expiration: int = config.expiration_time) -> None:
         """
         Store hashed data in Redis with an expiration time and session information.
-
+    
         Args:
             key (str): The key under which data will be stored.
             data (dict): The data to store.
-            session (str): The current user's session ID.
+            session_id (str): The current user's session ID.
             expiration (int): The expiration time in seconds (default is 5 minutes).
-
+    
         Raises:
             Exception: If an error occurs while storing data in Redis.
         """
         try:
             # Add session information to the data
-            data_with_session = {**data, "session": session}
-
-            # Hash the combined data (including the session)
+            data_with_session = {**data, "session": session_id}
+    
+            # Convert the combined data to JSON and hash it
             combined_data = json.dumps(data_with_session)
             hashed_data = RedisDataStorage.hash_data(combined_data)
-
+    
             # Store the hashed data in Redis
             redis_client.execute_command('SETEX', key, expiration, hashed_data)
         except Exception as e:
             print(f"Error storing data in Redis: {e}")
             raise
-
     @staticmethod
     def get_data_from_redis(key: str) -> Optional[dict]:
         """

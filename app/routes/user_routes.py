@@ -52,7 +52,7 @@ class UserRoutes:
         )(self.delete_user_route)
 
     async def create_user_route(
-        self,
+        self,  # Add `self` as the first parameter
         request: Request,
         name: str = Form(..., description="Name of the user `admin`"),
         email: EmailStr = Form(..., description="Valid email address of the user `admin@admin.com`"),
@@ -75,9 +75,9 @@ class UserRoutes:
             # Generate a unique Redis key
             redis_key = self.redis_data_storage.generate_redis_key(name, email, phone_no)
 
-            # Access the session from request.state
+            # Generate or retrieve session information
             session = getattr(request.state, "session", None)
-            if session is None:
+            if session is None or "session_id" not in session:
                 session = {"session_id": os.urandom(24).hex()}
                 request.state.session = session
 
@@ -85,16 +85,16 @@ class UserRoutes:
             self.redis_data_storage.store_data_in_redis(
                 redis_key,
                 user_data.model_dump(),  # Convert Pydantic model to dictionary
-                session["session_id"],   # Include the session ID in the data
+                session_id=session["session_id"],  # Use session_id directly
                 expiration=config.expiration_time
             )
 
             # Log the event
-            self.logger.info(f"User data temporarily stored in Redis for key: {redis_key}")
+            self.logger.info(f"User data temporarily stored in Redis for key: {redis_key} {user_data}")
 
             # Respond back with success message
             return JSONResponse(
-                content={"message": "User data stored temporarily in Redis."},
+                content={"message": f"User data stored temporarily in Redis. key: {redis_key} {user_data}"},
                 headers={"Set-Cookie": f"session_id={session['session_id']}; HttpOnly"}  # Set the session cookie
             )
 

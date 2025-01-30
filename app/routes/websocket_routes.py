@@ -1,39 +1,58 @@
 # app/routes/websocket_routes.py
+
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from app.services.websocket_service import WebSocketHandler
-from app.utils.generate_otp import generate_otp
-from app.utils.email_utils import send_email
-from app.utils.qr_generator import generate_qr_code
 
 router = APIRouter()
-
 ws_handler = WebSocketHandler()
 
+
 @router.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
+async def websocket_general_endpoint(websocket: WebSocket):
+    """
+    WebSocket endpoint to handle general client-server real-time communication.
+    """
     await ws_handler.connect(websocket)
     try:
         while True:
             data = await websocket.receive_text()
-            if data == "generate_otp":
-                otp = generate_otp()
-                await ws_handler.send_message(f"Generated OTP: {otp}")
-                
-                # Save OTP to session or database
-                session_data = {"otp": otp}
-                # Optionally save this in Redis or DB depending on your needs
-                # await save_session_data(session_data)
+            await ws_handler.send_message(f"Message received: {data}")
+    except WebSocketDisconnect:
+        await ws_handler.disconnect(websocket)
 
-                # Send email (real-time confirmation)
-                qr_code_image = generate_qr_code("User details or QR info")
-                send_email("recipient@example.com", qr_code_image)
 
-                await ws_handler.send_message("OTP generated and email sent!")
-                
-            elif data == "generate_qr":
-                qr_code_image = generate_qr_code("User details or QR info")
-                send_email("recipient@example.com", qr_code_image)
-                await ws_handler.send_message("QR code generated and email sent!")
-            
+@router.websocket("/ws/ack_otp")
+async def websocket_otp_ack_endpoint(websocket: WebSocket):
+    """
+    WebSocket endpoint to handle OTP acknowledgment.
+    """
+    await ws_handler.connect(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            if data.startswith("ack_otp:"):
+                otp_received = data.split(":")[1]
+                print(f"OTP {otp_received} acknowledged by client.")
+                await ws_handler.send_message(f"OTP {otp_received} acknowledged.")
+            else:
+                await ws_handler.send_message("Unhandled message format.")
+    except WebSocketDisconnect:
+        await ws_handler.disconnect(websocket)
+
+
+@router.websocket("/ws/session")
+async def websocket_session_endpoint(websocket: WebSocket):
+    """
+    WebSocket endpoint for session notifications and health checks.
+    """
+    await ws_handler.connect(websocket)
+    try:
+        while True:
+            # Keep the connection alive and handle incoming messages
+            data = await websocket.receive_text()
+            if data == "ping":
+                await websocket.send_text("pong")
+            else:
+                await ws_handler.send_message(f"Unhandled message: {data}")
     except WebSocketDisconnect:
         await ws_handler.disconnect(websocket)

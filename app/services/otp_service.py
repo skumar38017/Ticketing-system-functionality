@@ -1,64 +1,42 @@
-#  app/services/otp_service.py
+# app/services/otp_service.py
 
 import requests
-import random
+import json
+import logging
 from app.config import config
-from app.schemas.schema import SMSCreate
-from app.database.models import SMS
-from app.database import SessionLocal
 from app.utils.generate_otp import generate_otp
-def send_otp(mobile_no: str, ticket_price: float, ticket_name: str, ticket_qty: int):
-    """
-    Sends an OTP for ticket booking with additional details.
+from app.database.redisclient import redis_client
+from app.tasks.otp_task import OTPTask
 
-    Args:
-        mobile_no (str): The mobile number.
-        ticket_price (float): The ticket price.
-        ticket_name (str): The ticket name.
-        ticket_qty (int): The ticket quantity.
 
-    Returns:
-        str: The generated OTP.
-    """
+class OTPService:
+    def __init__(self, otp_task=OTPTask):  # Default to OTPTask if no argument is passed
+        self.logger = logging.getLogger("uvicorn.error")
+        self.redis_client = redis_client  # Use the existing RedisClient instance
+        self.otp_task = otp_task  # Store the task class (either passed or default OTPTask)
 
-    otp = generate_otp()
+    def send_otp(self, phone_no: str, name: str) -> str:
+        """
+        Publishes OTP task to RabbitMQ queue to be processed asynchronously.
 
-    # Construct the SMS message
-    message = f"""
-    Your OTP for ticket booking is: {otp}.
+        Args:
+            phone_no (str): The phone number.
+            name (str): The name associated with the ticket or purpose.
 
-    Ticket Details:
-    * Ticket Name: {ticket_name}
-    * Ticket Price: ₹{ticket_price:.2f}
-    * Ticket Quantity: {ticket_qty}
+        Returns:
+            str: The OTP that will be processed.
+        """       
+        try:
+            # Generate the OTP
+            self.logger.info(f"Generating OTP for phone number: {phone_no}, name: {name}")
+            otp = generate_otp()  # Use the utility function to generate OTP
+            self.logger.info(f"Generated OTP for phone number: {phone_no}, name: {name}, OTP: {otp}")
 
-    Valid for 5 minutes.
-    """
+            print(f"{name, phone_no}: {otp}")
+            # Publish OTP task to RabbitMQ
+            self.otp_task.send_otp_task.delay(phone_no, name, otp)  # Use .delay() for Celery tasks
+            return otp
 
-    # Send the SMS using the SMS API
-    response = requests.post(
-        config.SMS_API_URL,
-        json={
-            "mobile": mobile_no,
-            "message": message,
-            "api_key": config.SMS_API_KEY
-        }
-    )
-
-    # Store the OTP-related SMS in the database
-    db = SessionLocal()
-    sms_data = SMSCreate(
-        user_id="temporary-user-id",  # This would typically come from the user data
-        mobile_no=mobile_no,
-        message=message
-    )
-    db_sms = SMS(**sms_data.dict())
-    db.add(db_sms)
-    db.commit()
-    db.refresh(db_sms)
-
-    # Check API response
-    if response.status_code == 200:
-        return otp
-    else:
-        raise Exception(f"Failed to send OTP: {response.text}")
+        except Exception as e:
+            self.logger.error(f"Error generating OTP: {str(e)}")
+            raise e

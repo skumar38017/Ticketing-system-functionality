@@ -8,6 +8,7 @@ from app.database.database import get_db_connection, get_db, login_to_database
 from app.database.redisclient import redis_client
 from app.database.models import User
 from app.tasks.email_tasks import send_welcome_email
+from fastapi import APIRouter, WebSocket
 from app.services.websocket_service import WebSocketHandler
 from app.config import config
 from app.settings import settings
@@ -21,6 +22,17 @@ import logging
 import sys
 import qrcode
 import uvicorn
+
+from app.tasks.otp_task import OTPTask
+from app.services.otp_service import OTPService
+
+
+# Initialize OTPTask and OTPService
+otp_task = OTPTask()
+otp_service = OTPService(otp_task)
+router = APIRouter()
+ws_handler = WebSocketHandler()
+
 
 logger = logging.getLogger(__name__)
 
@@ -44,9 +56,8 @@ app = FastAPI(
 )
 
 # Add middleware separately
-app.add_middleware(RedisSessionMiddleware, redis_url=config.redis_result_url)
+app.add_middleware(RedisSessionMiddleware)
 app.add_middleware(CustomCORSMiddleware)
-
 
 #  Root 
 @app.get("/", include_in_schema=True)
@@ -88,22 +99,7 @@ async def startup_event():
         logger.error(f"Startup tasks failed: {e}")
         sys.exit(1)  # Exit the application if setup fails
 
-
 #  
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    """
-    WebSocket endpoint to handle client-server real-time communication.
-    """
-    await ws_handler.connect(websocket)
-    try:
-        while True:
-            data = await websocket.receive_text()
-            await ws_handler.send_message(f"Message received: {data}")
-    except WebSocketDisconnect:
-        await ws_handler.disconnect(websocket)
-
-# 
 @app.exception_handler(HTTPException)
 async def custom_http_exception_handler(request: Request, exc: HTTPException):
     """

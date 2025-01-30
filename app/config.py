@@ -36,7 +36,7 @@ class Config:
     @property
     def rabbitmq_url(self) -> str:
         return (
-            f"amqp://{settings.RABBITMQ_USER}:{settings.RABBITMQ_PASSWORD}@"
+            f"pyamqp://{settings.RABBITMQ_USER}:{settings.RABBITMQ_PASSWORD}@"
             f"{settings.RABBITMQ_HOST}:{settings.RABBITMQ_PORT}/{settings.RABBITMQ_VHOST}"
         )
 

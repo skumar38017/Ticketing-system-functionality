@@ -1,91 +1,168 @@
 # app/routes/user_routes.py
 
-from fastapi import APIRouter, Depends, HTTPException, Form
+from fastapi import APIRouter, Depends, HTTPException, Form, Request
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.database.database import get_db
-from app.schemas import UserCreate, UserResponse, UserBase  # These should now be available
-from app.curd_operation.user_curd import create_user, get_user_by_uuid, update_user, delete_user
 from pydantic import EmailStr
-from sqlalchemy.exc import SQLAlchemyError
 from starlette.responses import JSONResponse
-from app.config import config
 import logging
-from app.utils.redis_data_storage import store_data_in_redis
+import os
 
-router = APIRouter()
+from app.database.database import get_db
+from app.schemas import UserCreate, UserResponse
+from app.config import config
+from app.utils.redis_data_storage import RedisDataStorage
+from app.curd_operation.user_curd import UserCRUD
+from app.services.otp_service import OTPService
 
-# Set up logging
-logger = logging.getLogger("uvicorn.error")
+class UserRoutes:
+    def __init__(self):
+        self.router = APIRouter()
+        self.user_crud = UserCRUD()
+        self.redis_data_storage = RedisDataStorage()
+        self.logger = logging.getLogger("uvicorn.error")
+        self._setup_routes()
 
-# Route to create a new user
-@router.post(
-    "/register",
-    response_model=UserResponse,
-    status_code=201,
-    description="Create a new user for the ticketing system and store user information in the database",
-)
-async def create_user_route(
-    name: str = Form(..., description="Name of the user `admin`"),
-    email: EmailStr = Form(..., description="Valid email address of the user `admin@admin.com`"),
-    phone_no: str = Form(..., description="Phone number of the user `91 99999 99999` or `+91-99999 99999`"),
-    is_active: bool = Form(True, description="User status, active or not"),
-    db: AsyncSession = Depends(get_db),
-) -> JSONResponse:
-    """
-    Handle user registration via a form in the browser.
-    """
-    try:
-        # Create a Pydantic UserCreate model
-        user_data = UserCreate(
-            name=name,
-            email=email,
-            phone_no=phone_no,
-            is_active=is_active,  # Default value is set here
-        )
+    def _setup_routes(self):
+        """
+        Registers all routes in the APIRouter.
+        """
+        self.router.post(
+            "/register",
+            response_model=UserResponse,
+            status_code=201,
+            description="Create a new user for the ticketing system and store user information in the database"
+        )(self.create_user_route)
+
+        self.router.get(
+            "/user/{uuid}",
+            response_model=UserResponse,
+            description="Retrieve a user by UUID"
+        )(self.get_user_route)
+
+        self.router.put(
+            "/user/{uuid}",
+            response_model=UserResponse,
+            description="Update a user by UUID"
+        )(self.update_user_route)
+
+        self.router.delete(
+            "/user/{uuid}",
+            response_model=dict,
+            description="Delete a user by UUID"
+        )(self.delete_user_route)
+
+    async def create_user_route(
+        self,
+        request: Request,
+        name: str = Form(..., description="Name of the user `admin`"),
+        email: EmailStr = Form(..., description="Valid email address of the user `admin@admin.com`"),
+        phone_no: str = Form(..., description="Phone number of the user `91 99999 99999` or `+91-99999 99999`"),
+        is_active: bool = Form(False, description="User status, active or not"),
+        db: AsyncSession = Depends(get_db),
+    ) -> JSONResponse:
+        """
+        Handle user registration via a form in the browser.
+        """
+        try:
+            # Create a Pydantic UserCreate model
+            user_data = UserCreate(
+                name=name,
+                email=email,
+                phone_no=phone_no,
+                is_active=is_active,
+            )
+            # Generate a unique Redis key
+            redis_key = self.redis_data_storage.generate_redis_key(name, email, phone_no)
+
+            # Generate session ID
+            session = getattr(request.state, "session", None)
+            if session is None or "session_id" not in session:
+                session = {"session_id": os.urandom(24).hex()}
+                request.state.session = session
+
+            # Initialize OTPService with the required otp_task
+            from app.tasks.otp_task import OTPTask
+            otp_task = OTPTask()  # Create or get the OtpTask instance
+            otp_service = OTPService(otp_task=otp_task)
+
+            # Create OTP and publish the task to RabbitMQ
+            otp_service = OTPService(otp_task=otp_task)
+
+            # Generate OTP and send it
+            otp = otp_service.send_otp(phone_no=phone_no, name=name)
+            self.logger.info(f"OTP generated: {phone_no} {otp}")
+           
+            # Combine user data with OTP
+            user_data_with_otp = {
+                "name": name,
+                "email": email,
+                "phone_no": phone_no,
+                "is_active": is_active,
+                "otp": otp,
+            }
+
+            # Store the data in Redis
+            self.redis_data_storage.store_data_in_redis(
+                redis_key,
+                user_data_with_otp,
+                session_id=session["session_id"],
+                expiration=config.expiration_time
+            )
+
+            # Respond with success
+            return JSONResponse(
+                content={
+                    "message": "OTP sent and user data stored temporarily in Redis.",
+                    "redis_key": redis_key,
+                    "otp": otp
+                },
+                headers={"Set-Cookie": f"session_id={session['session_id']}; HttpOnly"}
+            )
+    
+        except Exception as e:
+            self.logger.error(f"Error during user registration: {str(e)}")
+            raise HTTPException(status_code=500, detail="An unexpected error occurred.")
         
-        # Temporarily store the data in Redis for 5 minutes
-        redis_key = f"user_data_{phone_no}"  # Using phone number as the key
-        store_data_in_redis(redis_key, user_data.model_dump(), expiration=config.expiration_time)  
+    async def get_user_route(self, uuid: str, db: AsyncSession = Depends(get_db)) -> UserResponse:
+        """
+        Retrieve a user by UUID.
+        """
+        try:
+            user = await self.user_crud.get_user_by_uuid(db=db, uuid=uuid)
+            if not user:
+                raise HTTPException(status_code=404, detail="User not found")
+            return user
+        except Exception as e:
+            self.logger.error(f"Exception retrieving user with UUID {uuid}: {str(e)}")
+            raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
-        # # Call the CRUD function to create a user in the database
-        # user = await create_user(db=db, user=user_data)
-        # Log the event
-        logger.info(f"User data temporarily stored in Redis for phone number: {phone_no}")
+    async def update_user_route(self, uuid: str, user: UserCreate, db: AsyncSession = Depends(get_db)) -> UserResponse:
+        """
+        Update a user by UUID.
+        """
+        try:
+            updated_user = await self.user_crud.update_user(db=db, uuid=uuid, user=user)
+            if not updated_user:
+                raise HTTPException(status_code=404, detail="User not found")
+            return updated_user
+        except Exception as e:
+            self.logger.error(f"Exception updating user with UUID {uuid}: {str(e)}")
+            raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
-        # Respond back with success message
-        return JSONResponse(content={"message": "User data stored temporarily in Redis."})
-    
-    # except SQLAlchemyError as e:
-    #     logger.error(f"SQLAlchemyError: {str(e)}")
-    #     raise HTTPException(status_code=500, detail="An error occurred while creating the user.")
-    # except Exception as e:
-    #     logger.error(f"Exception: {str(e)}")
-    #     raise HTTPException(status_code=500, detail="An unexpected error occurred.")
-    
-    except Exception as e:
-        logger.error(f"Exception: {str(e)}")
-        raise HTTPException(status_code=500, detail="An unexpected error occurred.")
-    
-# Route to get a user by UUID
-@router.get("/user/{uuid}", response_model=UserResponse)
-async def get_user_route(uuid: str, db: AsyncSession = Depends(get_db)):
-    user = await get_user_by_uuid(db=db, uuid=uuid)
-    if user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    return user
+    async def delete_user_route(self, uuid: str, db: AsyncSession = Depends(get_db)) -> dict:
+        """
+        Delete a user by UUID.
+        """
+        try:
+            success = await self.user_crud.delete_user(db=db, uuid=uuid)
+            if not success:
+                raise HTTPException(status_code=404, detail="User not found")
+            return {"message": "User deleted successfully"}
+        except Exception as e:
+            self.logger.error(f"Exception deleting user with UUID {uuid}: {str(e)}")
+            raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
-# Route to update a user by UUID
-@router.put("/user/{uuid}", response_model=UserResponse)
-async def update_user_route(uuid: str, user: UserCreate, db: AsyncSession = Depends(get_db)):
-    updated_user = await update_user(db=db, uuid=uuid, user=user)
-    if updated_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    return updated_user
 
-# Route to delete a user by UUID
-@router.delete("/user/{uuid}", response_model=dict)
-async def delete_user_route(uuid: str, db: AsyncSession = Depends(get_db)):
-    success = await delete_user(db=db, uuid=uuid)
-    if not success:
-        raise HTTPException(status_code=404, detail="User not found")
-    return {"message": "User deleted successfully"}
+# Create an instance of the class and expose its router
+user_routes = UserRoutes()
+router = user_routes.router

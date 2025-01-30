@@ -16,7 +16,7 @@ class User(Base):
     name = Column(String(50), nullable=False)
     email = Column(String(100), nullable=False)
     phone_no = Column(String(16), nullable=False)
-    is_active = Column(Boolean, default=True)
+    is_active = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
 

@@ -1,18 +1,18 @@
 # app/routes/user_routes.py
-
-from fastapi import APIRouter, Depends, HTTPException, Form, Request
-from sqlalchemy.ext.asyncio import AsyncSession
-from pydantic import EmailStr
-from starlette.responses import JSONResponse
-import logging
 import os
+import logging
 
-from app.database.database import get_db
-from app.schemas import UserCreate, UserResponse
+from pydantic import EmailStr
 from app.config import config
-from app.utils.redis_data_storage import RedisDataStorage
-from app.curd_operation.user_curd import UserCRUD
+from app.database.database import get_db
+from starlette.responses import JSONResponse
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.services.otp_service import OTPService
+from app.utils.otp_verification import verify_otp
+from app.curd_operation.user_curd import UserCRUD
+from app.utils.redis_data_storage import RedisDataStorage
+from app.schemas.schema import UserCreate, UserResponse, OptInput
+from fastapi import APIRouter, Depends, HTTPException, Form, Request
 
 class UserRoutes:
     def __init__(self):
@@ -32,6 +32,13 @@ class UserRoutes:
             status_code=201,
             description="Create a new user for the ticketing system and store user information in the database"
         )(self.create_user_route)
+        
+        self.router.post(
+            "/otpVerify",
+            response_model=UserResponse,
+            status_code=200,
+            description="Verify otp and send the user details into the response."
+        )(self.verify_otp_route)
 
         self.router.get(
             "/user/{uuid}",
@@ -91,7 +98,7 @@ class UserRoutes:
             # Generate OTP and send it
             otp = otp_service.send_otp(phone_no=phone_no, name=name)
             self.logger.info(f"OTP generated: {phone_no} {otp}")
-           
+
             # Combine user data with OTP
             user_data_with_otp = {
                 "name": name,
@@ -122,6 +129,38 @@ class UserRoutes:
         except Exception as e:
             self.logger.error(f"Error during user registration: {str(e)}")
             raise HTTPException(status_code=500, detail="An unexpected error occurred.")
+        
+    async def verify_otp_route(
+            redis_key: str = Form(..., description="Redis key storing OTP"),
+            otp: str = Form(..., description="OTP entered by the user"),
+            db: AsyncSession = Depends(get_db),
+        ) -> JSONResponse:
+        """
+        Verify the OTP and register the user if the OTP is valid.
+        """
+        try:
+            # Verify the OTP
+            data =  OptInput(
+                redis_key=redis_key,
+                otp=otp
+            )
+            print('redis_key in verify_otp_route', redis_key)
+            user_data = await verify_otp(redis_key, otp)
+
+            if not user_data:
+                raise HTTPException(status_code=400, detail="Invalid or expired OTP.")
+
+            # Store user in the database
+            # new_user = UserCreate(**user_data)
+            # created_user = await UserCRUD().create_user(db, new_user)
+
+            return JSONResponse(
+                # content={"message": "User registered successfully", "user": created_user.dict()}
+                content={"message": "User registered successfully","user_data": user_data}
+            )
+
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error verifying OTP: {str(e)}")
         
     async def get_user_route(self, uuid: str, db: AsyncSession = Depends(get_db)) -> UserResponse:
         """

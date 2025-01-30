@@ -22,6 +22,10 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     pass
 
+
+class OptInput(BaseModel):
+    pass
+
 class UserResponse(UserBase):
     uuid: str
     name: str

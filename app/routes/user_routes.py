@@ -12,7 +12,7 @@ from app.schemas import UserCreate, UserResponse
 from app.config import config
 from app.utils.redis_data_storage import RedisDataStorage
 from app.curd_operation.user_curd import UserCRUD
-
+from app.services.otp_service import OTPService
 
 class UserRoutes:
     def __init__(self):
@@ -52,12 +52,12 @@ class UserRoutes:
         )(self.delete_user_route)
 
     async def create_user_route(
-        self,  # Add `self` as the first parameter
+        self,
         request: Request,
         name: str = Form(..., description="Name of the user `admin`"),
         email: EmailStr = Form(..., description="Valid email address of the user `admin@admin.com`"),
         phone_no: str = Form(..., description="Phone number of the user `91 99999 99999` or `+91-99999 99999`"),
-        is_active: bool = Form(True, description="User status, active or not"),
+        is_active: bool = Form(False, description="User status, active or not"),
         db: AsyncSession = Depends(get_db),
     ) -> JSONResponse:
         """
@@ -71,37 +71,58 @@ class UserRoutes:
                 phone_no=phone_no,
                 is_active=is_active,
             )
-
             # Generate a unique Redis key
             redis_key = self.redis_data_storage.generate_redis_key(name, email, phone_no)
 
-            # Generate or retrieve session information
+            # Generate session ID
             session = getattr(request.state, "session", None)
             if session is None or "session_id" not in session:
                 session = {"session_id": os.urandom(24).hex()}
                 request.state.session = session
 
-            # Store the data in Redis with the session ID
+            # Initialize OTPService with the required otp_task
+            from app.tasks.otp_task import OTPTask
+            otp_task = OTPTask()  # Create or get the OtpTask instance
+            otp_service = OTPService(otp_task=otp_task)
+
+            # Create OTP and publish the task to RabbitMQ
+            otp_service = OTPService(otp_task=otp_task)
+
+            # Generate OTP and send it
+            otp = otp_service.send_otp(phone_no=phone_no, name=name)
+            self.logger.info(f"OTP generated: {phone_no} {otp}")
+           
+            # Combine user data with OTP
+            user_data_with_otp = {
+                "name": name,
+                "email": email,
+                "phone_no": phone_no,
+                "is_active": is_active,
+                "otp": otp,
+            }
+
+            # Store the data in Redis
             self.redis_data_storage.store_data_in_redis(
                 redis_key,
-                user_data.model_dump(),  # Convert Pydantic model to dictionary
-                session_id=session["session_id"],  # Use session_id directly
+                user_data_with_otp,
+                session_id=session["session_id"],
                 expiration=config.expiration_time
             )
 
-            # Log the event
-            self.logger.info(f"User data temporarily stored in Redis for key: {redis_key} {user_data}")
-
-            # Respond back with success message
+            # Respond with success
             return JSONResponse(
-                content={"message": f"User data stored temporarily in Redis. key: {redis_key} {user_data}"},
-                headers={"Set-Cookie": f"session_id={session['session_id']}; HttpOnly"}  # Set the session cookie
+                content={
+                    "message": "OTP sent and user data stored temporarily in Redis.",
+                    "redis_key": redis_key,
+                    "otp": otp
+                },
+                headers={"Set-Cookie": f"session_id={session['session_id']}; HttpOnly"}
             )
-
+    
         except Exception as e:
-            self.logger.error(f"Exception during user registration: {str(e)}")
+            self.logger.error(f"Error during user registration: {str(e)}")
             raise HTTPException(status_code=500, detail="An unexpected error occurred.")
-
+        
     async def get_user_route(self, uuid: str, db: AsyncSession = Depends(get_db)) -> UserResponse:
         """
         Retrieve a user by UUID.

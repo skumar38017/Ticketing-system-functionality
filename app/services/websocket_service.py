@@ -1,11 +1,13 @@
 # app/services/websocket_service.py
 import asyncio
+import logging
 from fastapi import WebSocket, WebSocketDisconnect
 from typing import List
 
 class WebSocketHandler:
     def __init__(self):
         self.active_connections: List[WebSocket] = []
+        self.logger = logging.getLogger("uvicorn.error")
 
     async def connect(self, websocket: WebSocket):
         """
@@ -21,6 +23,17 @@ class WebSocketHandler:
         """
         self.active_connections.remove(websocket)
         print(f"Disconnected: {websocket.client}")
+
+    async def send_otp(self, mobile_no: str, otp: str):
+        """
+        Sends the OTP to all active WebSocket connections.
+        """
+        for connection in self.active_connections:
+            try:
+                await connection.send_text(f"OTP for {mobile_no}: {otp}")
+            except WebSocketDisconnect:
+                print("A connection was disconnected while sending OTP.")
+                self.active_connections.remove(connection)
 
     async def send_message(self, message: str):
         """

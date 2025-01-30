@@ -2,6 +2,7 @@
     celery -A app.workers.celery_app.celery worker --loglevel=info
     celery -A app.workers.celery_app worker --loglevel=info --concurrency=4
     celery -A app.workers.celery_app flower --port=5555
+celery -A app.workers.celery_app.celery_app worker --loglevel=info --queues=otp_queue
 
 
 ----------------------------------------migrations.txt------------------------------------------------------------------------------------------------------------------------

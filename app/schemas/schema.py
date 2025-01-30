@@ -12,7 +12,7 @@ class UserBase(BaseModel):
     email: EmailStr
     phone_no: str = Field(..., max_length=16, min_length=10)  # Adjusted for international support
     is_active: Optional[bool] = True  # Default value is set here
-    
+
     # Use @field_validator in Pydantic V2
     @field_validator("phone_no")
     @classmethod
@@ -51,7 +51,7 @@ class PaymentBase(BaseModel):
     c_gst: float = 0
     total_tax: float = 0
     total_amount: float = 0
-    transaction_status: str = Field(..., pattern="^(successfully|failed|still processing)$")
+    transaction_status: str = Field(..., pattern="^(successfully|failed|processing|cancelled|due)$")
 
 
 class PaymentCreate(PaymentBase):

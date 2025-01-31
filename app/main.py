@@ -66,8 +66,8 @@ async def index():
 
 # Include routes
 app.include_router(user_routes.router)
-app.include_router(qr_code_routes.router)
-app.include_router(webhook_routes.router)
+# app.include_router(qr_code_routes.router)
+# app.include_router(webhook_routes.router)
 app.include_router(websocket_routes.router)
 
 # Initialize WebSocketHandler

@@ -34,7 +34,7 @@ class OTPService:
             print(f"{name, phone_no}: {otp}")
             # Publish OTP task to RabbitMQ
             send_otp_task.delay(phone_no, name, otp)  # Use .delay() for Celery tasks
-            print(self.otp_task)
+            print(send_otp_task)
             return otp
 
         except Exception as e:

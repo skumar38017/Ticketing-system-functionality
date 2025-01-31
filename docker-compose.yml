@@ -52,7 +52,7 @@ services:
   celery-beat:
     build:
       context: .
-      dockerfile: ./Dockerfile.celery 
+      dockerfile: ./Dockerfile.WorkerCelery
       args:
         RABBITMQ_URL: ${RABBITMQ_URL}
     container_name: celery-beat-container
@@ -80,11 +80,11 @@ services:
   celery:
     build:
       context: .
-      dockerfile: ./Dockerfile.celery
+      dockerfile: ./Dockerfile.WorkerCelery
       args:
         RABBITMQ_URL: ${RABBITMQ_URL}
     container_name: celery-container
-    command: celery -A app.workers.celery_app worker --loglevel=info
+    command: celery -A app.workers.celery_app worker --loglevel=info -Q * -E
     env_file:
       - ./.docker.env
     environment:
@@ -159,6 +159,146 @@ services:
       interval: 1m30s
       timeout: 30s
       retries: 5
+      start_period: 30s
+
+  otp_worker:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.WorkerCelery
+      args:
+        RABBITMQ_URL: ${RABBITMQ_URL}
+    container_name: otp_worker
+    command: celery -A app.workers.celery_app worker -Q otp_queue -c 2 --loglevel=info -E
+    env_file:
+      - ./.docker.env
+    environment:
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - rabbitmq
+      - redis
+    volumes:
+      - ${PWD}/rabbitmq_data:/var/lib/rabbitmq
+      - ${PWD}:/app
+      - ${PWD}/redis_data:/data
+    networks:
+      - ${NETWORK}
+    healthcheck:
+      test: ["CMD", "celery", "inspect", "ping"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+
+  payment_worker:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.WorkerCelery
+      args:
+        RABBITMQ_URL: ${RABBITMQ_URL}
+    container_name: payment_worker
+    command: celery -A app.workers.celery_app worker -Q payment_queue -c 2 --loglevel=info -E
+    env_file:
+      - ./.docker.env
+    environment:
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - rabbitmq
+      - redis
+    volumes:
+      - ${PWD}/rabbitmq_data:/var/lib/rabbitmq
+      - ${PWD}:/app
+      - ${PWD}/redis_data:/data
+    networks:
+      - ${NETWORK}
+    healthcheck:
+      test: ["CMD", "celery", "inspect", "ping"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+
+  qr_worker:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.WorkerCelery
+      args:
+        RABBITMQ_URL: ${RABBITMQ_URL}
+    container_name: qr_worker
+    command: celery -A app.workers.celery_app worker -Q qr_queue -c 2 --loglevel=info -E
+    env_file:
+      - ./.docker.env
+    environment:
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - rabbitmq
+      - redis
+    volumes:
+      - ${PWD}/rabbitmq_data:/var/lib/rabbitmq
+      - ${PWD}:/app
+      - ${PWD}/redis_data:/data
+    networks:
+      - ${NETWORK}
+    healthcheck:
+      test: ["CMD", "celery", "inspect", "ping"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+
+  email_worker:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.WorkerCelery
+      args:
+        RABBITMQ_URL: ${RABBITMQ_URL}
+    container_name: email_worker
+    command: celery -A app.workers.celery_app worker -Q email_queue -c 2 --loglevel=info -E
+    env_file:
+      - ./.docker.env
+    environment:
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - rabbitmq
+      - redis
+    volumes:
+      - ${PWD}/rabbitmq_data:/var/lib/rabbitmq
+      - ${PWD}:/app
+      - ${PWD}/redis_data:/data
+    networks:
+      - ${NETWORK}
+    healthcheck:
+      test: ["CMD", "celery", "inspect", "ping"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+
+  flower:
+    image: ${FLOWER_IMAGE}
+    container_name: ${FLOWER_CONTAINER_NAME}
+    restart: on-failure:3
+    command: celery -A app.workers.celery_app flower --port=${FLOWER_PORT} --broker=${CELERY_BROKER_URL}
+    env_file:
+      - ./.docker.env
+    environment:
+      - CELERY_BROKER_URL:${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND: redis://redis
+    ports:
+      - ${FLOWER_PORT}:${FLOWER_HTTP_PORT}
+    depends_on:
+      - rabbitmq
+      - redis
+      - otp_worker
+      - payment_worker
+      - qr_worker 
+      - email_worker
+    networks:
+      - ${NETWORK}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${FLOWER_PORT}"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5  
       start_period: 30s
 
   watchtower:

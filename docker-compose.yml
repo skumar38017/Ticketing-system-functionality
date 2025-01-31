@@ -9,9 +9,9 @@ services:
       - "${RABBITMQ_PORT}:${RABBITMQ_HTTP_PORT}"
       - "${RABBIT_WEB_PORT}:${RABBIT_WEB_HTTP_PORT}"
     environment:
-      RABBITMQ_USER: ${RABBITMQ_USER}
-      RABBITMQ_PASSWORD: ${RABBITMQ_PASS}
-      RABBITMQ_VHOST: ${RABBITMQ_VHOST}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST}
     env_file:
       - ./.docker.env
     volumes:
@@ -66,6 +66,8 @@ services:
       - redis
     volumes:
       - ${PWD}/rabbitmq_data:/var/lib/rabbitmq
+      - ${PWD}/redis_data:/data
+      - ${PWD}:/app
     networks:
       - ${NETWORK}
     healthcheck:
@@ -93,6 +95,8 @@ services:
       - postgres
     volumes:
       - ${PWD}/rabbitmq_data:/var/lib/rabbitmq
+      - ${PWD}:/app
+      - ${PWD}/redis_data:/data
     networks:
       - ${NETWORK}
     healthcheck:
@@ -103,7 +107,7 @@ services:
       start_period: 30s
 
   postgres:
-    image: ${POSTGRESS_IMAGE}
+    image: ${POSTGRES_IMAGE}
     container_name: ${POSTGRES_CONTAINER_NAME}
     restart: on-failure:3
     environment:

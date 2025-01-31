@@ -46,11 +46,11 @@ class Settings:
     # Celery Configuration
     CELERY_BROKER_URL: str = os.getenv(
         "CELERY_BROKER_URL",
-        f"pyamqp://{RABBITMQ_USER}:{RABBITMQ_PASSWORD}@{RABBITMQ_HOST}:{RABBITMQ_PORT}/{RABBITMQ_VHOST}"
+        f"amqp://{RABBITMQ_USER}:{RABBITMQ_PASSWORD}@{RABBITMQ_HOST}:{RABBITMQ_PORT}/{RABBITMQ_VHOST}"
     )
     CELERY_RESULT_BACKEND: str = os.getenv(
         "CELERY_RESULT_BACKEND",
-        f"rpc://"
+        f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB_RESULT}"
     )
 
     # Webhook Configuration

@@ -23,8 +23,8 @@ class UserCreate(UserBase):
     pass
 
 
-class OptInput(BaseModel):
-    pass
+# class OptInput(BaseModel):
+#     pass
 
 class UserResponse(UserBase):
     uuid: str

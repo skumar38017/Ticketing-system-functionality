@@ -36,7 +36,7 @@ class UserCRUD:
                 name=user.name,
                 email=user.email,
                 phone_no=user.phone_no,
-                is_active=user.is_active,
+                is_active=True,
             )
 
             # Add the user to the session and commit to the database

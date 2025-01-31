@@ -3,8 +3,8 @@
 import json
 import hashlib
 from typing import Optional
-from app.database.redisclient import redis_client  # Import the redis_client instance
 from app.config import config
+from app.database.redisclient import redis_client
 
 class RedisDataStorage:
     """
@@ -40,6 +40,7 @@ class RedisDataStorage:
         combined_data = f"{name}_{email}_{phone_no}"
         return f"user_data_{RedisDataStorage.hash_data(combined_data)}"
 
+    
     @staticmethod
     def store_data_in_redis(key: str, data: dict, session_id: str, expiration: int = config.expiration_time) -> None:
         """
@@ -62,8 +63,11 @@ class RedisDataStorage:
             combined_data = json.dumps(data_with_session)
             hashed_data = RedisDataStorage.hash_data(combined_data)
 
-            # Store the hashed data in Redis
-            redis_client.execute_command('SETEX', key, expiration, hashed_data)
+            # Store  hashed version data in Redis
+            redis_client.execute_command('SETEX', key, expiration, json.dumps({
+                "original_data": data_with_session,
+                "hashed_data": hashed_data
+            }))
         except Exception as e:
             print(f"Error storing data in Redis: {e}")
             raise
@@ -71,22 +75,36 @@ class RedisDataStorage:
     @staticmethod
     def get_data_from_redis(key: str) -> Optional[dict]:
         """
-        Retrieve hashed data from Redis using the key.
+        Retrieve data from Redis using the key. If the data is hashed, return the original data.
 
         Args:
             key (str): The key to retrieve data from Redis.
 
         Returns:
-            dict: The data stored in Redis, or None if not found.
+            dict: The original data if hash matches, or None if not found.
         """
         try:
-            hashed_data = redis_client.execute_command('GET', key)
-            if hashed_data:
-                # Since the data is hashed, you cannot directly decode it back to the original dictionary.
-                # You can only verify if the data matches a given input by hashing the input and comparing.
-                # For this example, we return the hashed data as-is.
-                return {"hashed_data": hashed_data.decode()}  # Return the hashed data
+            data = redis_client.execute_command('GET', key)
+            
+            if data:
+                # Parse the stored data from JSON
+            
+                stored_data = json.loads(data.decode())
+                original_data = stored_data.get("original_data")
+                hashed_data = stored_data.get("hashed_data")
+                
+                # Verify if the hash of the original data matches the stored hash
+                combined_data = json.dumps(original_data)
+                
+                if RedisDataStorage.hash_data(combined_data) == hashed_data:
+                    return combined_data  # Return the original data if the hash matches
+                
+                else:
+                    print("Data integrity check failed: Hash mismatch")
+                    return None  # Hash mismatch, return None
+        
             return None
+        
         except Exception as e:
             print(f"Error retrieving data from Redis: {e}")
             return None

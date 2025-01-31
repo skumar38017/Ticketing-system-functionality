@@ -10,8 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.services.otp_service import OTPService
 from app.utils.otp_verification import verify_otp
 from app.curd_operation.user_curd import UserCRUD
+from app.schemas.schema import UserCreate, UserResponse
 from app.utils.redis_data_storage import RedisDataStorage
-from app.schemas.schema import UserCreate, UserResponse, OptInput
 from fastapi import APIRouter, Depends, HTTPException, Form, Request
 
 class UserRoutes:
@@ -124,6 +124,7 @@ class UserRoutes:
             raise HTTPException(status_code=500, detail="An unexpected error occurred.")
         
     async def verify_otp_route(
+            self,
             redis_key: str = Form(..., description="Redis key storing OTP"),
             otp: str = Form(..., description="OTP entered by the user"),
             db: AsyncSession = Depends(get_db),
@@ -132,13 +133,8 @@ class UserRoutes:
         Verify the OTP and register the user if the OTP is valid.
         """
         try:
-            # Verify the OTP
-            data =  OptInput(
-                redis_key=redis_key,
-                otp=otp
-            )
-            print('redis_key in verify_otp_route', redis_key)
             user_data = await verify_otp(redis_key, otp)
+            print('user_data',user_data)
 
             if not user_data:
                 raise HTTPException(status_code=400, detail="Invalid or expired OTP.")
@@ -146,9 +142,9 @@ class UserRoutes:
             # Store user in the database
             # new_user = UserCreate(**user_data)
             # created_user = await UserCRUD().create_user(db, new_user)
-
+            
+            user_data.pop('session')
             return JSONResponse(
-                # content={"message": "User registered successfully", "user": created_user.dict()}
                 content={"message": "User registered successfully","user_data": user_data}
             )
 

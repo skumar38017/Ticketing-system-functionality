@@ -46,25 +46,26 @@ class Settings:
     # Celery Configuration
     CELERY_BROKER_URL: str = os.getenv(
         "CELERY_BROKER_URL",
-        f"pyamqp://{RABBITMQ_USER}:{RABBITMQ_PASSWORD}@{RABBITMQ_HOST}:{RABBITMQ_PORT}/{RABBITMQ_VHOST}"
+        f"amqp://{RABBITMQ_USER}:{RABBITMQ_PASSWORD}@{RABBITMQ_HOST}:{RABBITMQ_PORT}/{RABBITMQ_VHOST}"
     )
     CELERY_RESULT_BACKEND: str = os.getenv(
         "CELERY_RESULT_BACKEND",
-        f"rpc://"
+        f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB_RESULT}"
     )
 
     # Webhook Configuration
     WEBHOOK_URL: str = os.getenv("WEBHOOK_URL", "http://SERVER_IP:8000/webhook/payment")
 
     # SMS Service Configuration
-    SMS_API_URL: str = os.getenv("SMS_API_URL", "https://api.smsprovider.com/send")
-    SMS_API_KEY: str = os.getenv("SMS_API_KEY", "your_sms_api_key")
+    TWILIO_SID: str = os.getenv("TWILIO_SID", "ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+    TWILIO_AUTH_TOKEN: str = os.getenv("TWILIO_AUTH_TOKEN", "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+    TWILIO_PHONE_NUMBER: str = os.getenv("TWILIO_PHONE_NUMBER", "91xxxxxxxxxx")
 
     # OTP Settings
     OTP_EXPIRATION_TIME: int = int(os.getenv("OTP_EXPIRATION_TIME", 300))
 
     # Data Storage Settings
-    EXPIRATION_TIME: str = os.getenv("EXPIRATION_TIME", "600")
+    EXPIRATION_TIME: str = os.getenv("EXPIRATION_TIME", "800")
 
     # Email Configuration
     EMAIL_ADDRESS: str = os.getenv("EMAIL_ADDRESS", "your_email_address")

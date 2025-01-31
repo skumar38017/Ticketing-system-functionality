@@ -18,24 +18,25 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class RedisSessionMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app, redis_url: Optional[str] = None):
+    def __init__(self, app, paths_to_handle=None):
         """
         Initialize the Redis session middleware.
 
         Args:
             app: The FastAPI application.
-            redis_url: Optional Redis URL. Defaults to the environment variable `REDIS_RESULT_URL`.
+            paths_to_handle: List of paths to manage sessions for.
         """
         super().__init__(app)
-        self.redis = Redis.from_url(redis_url) if redis_url else redis_client.redis  # Use Redis instance
+        self.redis = redis_client.redis  # Use the shared Redis client instance
         if not self.redis:
-            raise ValueError("Redis URL must be provided or set in the environment variable `REDIS_RESULT_URL`.")
+            raise ValueError("Redis client instance not initialized properly.")
         self.ws_handler = WebSocketHandler()  # WebSocket handler
+        self.paths_to_handle = paths_to_handle or ["/register"]  # Default to "/register"
         logger.info("Redis session middleware initialized.")
 
     async def dispatch(self, request: Request, call_next):
         """
-        Middleware to manage session using Redis only for specific requests.
+        Middleware to manage session using Redis for specific requests.
 
         Args:
             request: The incoming HTTP request.
@@ -46,7 +47,7 @@ class RedisSessionMiddleware(BaseHTTPMiddleware):
         """
         try:
             # Check if the session should be handled for this request
-            if request.url.path in ["/register", "/some_specific_endpoint"]:
+            if request.url.path in self.paths_to_handle:
                 session_id = request.cookies.get("session_id")
                 if not session_id:
                     # Generate a new session ID only when required
@@ -92,7 +93,7 @@ class RedisSessionMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         except Exception as e:
-            logger.error(f"Error in session middleware: {e}")
+            logger.error(f"Error in Redis session middleware: {e}")
             return JSONResponse(
                 status_code=500,
                 content={"message": "Internal server error"},

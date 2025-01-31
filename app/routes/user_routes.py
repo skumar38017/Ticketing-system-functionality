@@ -17,6 +17,7 @@ from fastapi import APIRouter, Depends, HTTPException, Form, Request
 class UserRoutes:
     def __init__(self):
         self.router = APIRouter()
+        self.otp_service = OTPService()
         self.user_crud = UserCRUD()
         self.redis_data_storage = RedisDataStorage()
         self.logger = logging.getLogger("uvicorn.error")
@@ -87,16 +88,8 @@ class UserRoutes:
                 session = {"session_id": os.urandom(24).hex()}
                 request.state.session = session
 
-            # Initialize OTPService with the required otp_task
-            from app.tasks.otp_task import OTPTask
-            otp_task = OTPTask()  # Create or get the OtpTask instance
-            otp_service = OTPService(otp_task=otp_task)
-
-            # Create OTP and publish the task to RabbitMQ
-            otp_service = OTPService(otp_task=otp_task)
-
             # Generate OTP and send it
-            otp = otp_service.send_otp(phone_no=phone_no, name=name)
+            otp = self.otp_service.send_otp(phone_no=phone_no, name=name)
             self.logger.info(f"OTP generated: {phone_no} {otp}")
 
             # Combine user data with OTP
@@ -125,7 +118,7 @@ class UserRoutes:
                 },
                 headers={"Set-Cookie": f"session_id={session['session_id']}; HttpOnly"}
             )
-    
+
         except Exception as e:
             self.logger.error(f"Error during user registration: {str(e)}")
             raise HTTPException(status_code=500, detail="An unexpected error occurred.")

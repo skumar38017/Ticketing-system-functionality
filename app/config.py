@@ -36,7 +36,7 @@ class Config:
     @property
     def rabbitmq_url(self) -> str:
         return (
-            f"pyamqp://{settings.RABBITMQ_USER}:{settings.RABBITMQ_PASSWORD}@"
+            f"amqp://{settings.RABBITMQ_USER}:{settings.RABBITMQ_PASSWORD}@"
             f"{settings.RABBITMQ_HOST}:{settings.RABBITMQ_PORT}/{settings.RABBITMQ_VHOST}"
         )
 
@@ -80,12 +80,13 @@ class Config:
     def webhook_url(self) -> str:
         return settings.WEBHOOK_URL
 
-    # SMS Configuration
+    # SMS Service Configuration
     @property
     def sms_api(self) -> Dict[str, str]:
         return {
-            "url": settings.SMS_API_URL,
-            "key": settings.SMS_API_KEY,
+            "SID": settings.TWILIO_SID,
+            "AUTH_TOKEN": settings.TWILIO_AUTH_TOKEN,  # Corrected the key name
+            "PHONE_NUMBER": settings.TWILIO_PHONE_NUMBER  # Fixed typo in the key
         }
 
     # OTP Expiration Time

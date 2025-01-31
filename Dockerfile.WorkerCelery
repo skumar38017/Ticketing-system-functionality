@@ -41,9 +41,7 @@ RUN find / -name '*.pyc' -delete \
     && find / -name '__pycache__' -delete
 
 # Switch to celeryuser before running the Celery worker
-RUN adduser --disabled-password --gecos "" celeryuser
 USER celeryuser
 
-
-# Default command for the container (Celery 
+# Default command for the container (Celery worker)
 CMD ["celery", "-A", "app.workers.celery_app", "worker", "--loglevel=info", "-Q", "*", "-E"]

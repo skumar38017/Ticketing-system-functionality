@@ -6,6 +6,7 @@ from typing import Optional
 from app.database.redisclient import redis_client  # Import the redis_client instance
 from app.config import config
 
+
 class RedisDataStorage:
     """
     A class to handle Redis data storage operations, including hashing and session management.
@@ -38,55 +39,65 @@ class RedisDataStorage:
             str: The generated Redis key.
         """
         combined_data = f"{name}_{email}_{phone_no}"
+        print(f"Combined data for generate_redis_key: {combined_data}")
         return f"user_data_{RedisDataStorage.hash_data(combined_data)}"
 
     @staticmethod
     def store_data_in_redis(key: str, data: dict, session_id: str, expiration: int = config.expiration_time) -> None:
         """
         Store hashed data in Redis with an expiration time and session information.
-
-        Args:
-            key (str): The key under which data will be stored.
-            data (dict): The data to store.
-            session_id (str): The current user's session ID.
-            expiration (int): The expiration time in seconds (default is 5 minutes).
-
-        Raises:
-            Exception: If an error occurs while storing data in Redis.
         """
         try:
             # Add session information to the data
             data_with_session = {**data, "session": session_id}
-
-            # Convert the combined data to JSON and hash it
+    
+            # Convert the combined data to JSON
             combined_data = json.dumps(data_with_session)
             hashed_data = RedisDataStorage.hash_data(combined_data)
-
-            # Store the hashed data in Redis
-            redis_client.execute_command('SETEX', key, expiration, hashed_data)
+    
+            # Store hashed version data in Redis
+            redis_client.setex(
+                key,
+                expiration,
+                json.dumps({
+                    "original_data": data_with_session,
+                    "hashed_data": hashed_data
+                })
+            )
+            print(f"Stored data in Redis with key {key}: {data_with_session}")
         except Exception as e:
-            print(f"Error storing data in Redis: {e}")
+            print(f"Error storing data in Redis for key {key}: {e}")
             raise
-        
+
     @staticmethod
     def get_data_from_redis(key: str) -> Optional[dict]:
         """
-        Retrieve hashed data from Redis using the key.
+        Retrieve data from Redis using the key. If the data is hashed, return the original data.
 
         Args:
             key (str): The key to retrieve data from Redis.
 
         Returns:
-            dict: The data stored in Redis, or None if not found.
+            dict: The original data if hash matches, or None if not found.
         """
         try:
-            hashed_data = redis_client.execute_command('GET', key)
-            if hashed_data:
-                # Since the data is hashed, you cannot directly decode it back to the original dictionary.
-                # You can only verify if the data matches a given input by hashing the input and comparing.
-                # For this example, we return the hashed data as-is.
-                return {"hashed_data": hashed_data.decode()}  # Return the hashed data
+            data = redis_client.get(key)
+            if data:
+                # Parse the stored data from JSON
+                stored_data = json.loads(data.decode())
+                print(f"Stored data retrieved: {stored_data}")
+                original_data = stored_data.get("original_data")
+                hashed_data = stored_data.get("hashed_data")
+
+                # Verify if the hash of the original data matches the stored hash
+                combined_data = json.dumps(original_data)
+                if RedisDataStorage.hash_data(combined_data) == hashed_data:
+                    return original_data  # Return the original data if the hash matches
+                else:
+                    print(f"Data integrity check failed for key {key}: Hash mismatch")
+                    return None
+
             return None
         except Exception as e:
-            print(f"Error retrieving data from Redis: {e}")
+            print(f"Error retrieving data from Redis for key {key}: {e}")
             return None

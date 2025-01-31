@@ -61,6 +61,7 @@ services:
       - ./.docker.env
     environment:
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
     depends_on:
       - rabbitmq
       - redis
@@ -89,6 +90,7 @@ services:
       - ./.docker.env
     environment:
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
     depends_on:
       - rabbitmq
       - redis
@@ -140,6 +142,7 @@ services:
       - DB_USER=${DB_USER}
       - DB_PASS=${DB_PASS}
       - DB_NAME=${DB_NAME}
+      - NC_REDIS_URL=${CELERY_RESULT_BACKEND}
       - NC_DB=${NC_DB}
     ports:
       - "${NOCO_DB_PORT}:${NOCO_HTTP_PORT}"
@@ -173,6 +176,8 @@ services:
       - ./.docker.env
     environment:
       - PYTHONUNBUFFERED=1
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
     depends_on:
       - rabbitmq
       - redis
@@ -201,6 +206,8 @@ services:
       - ./.docker.env
     environment:
       - PYTHONUNBUFFERED=1
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
     depends_on:
       - rabbitmq
       - redis
@@ -229,6 +236,8 @@ services:
       - ./.docker.env
     environment:
       - PYTHONUNBUFFERED=1
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
     depends_on:
       - rabbitmq
       - redis
@@ -257,6 +266,8 @@ services:
       - ./.docker.env
     environment:
       - PYTHONUNBUFFERED=1
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
     depends_on:
       - rabbitmq
       - redis
@@ -281,8 +292,8 @@ services:
     env_file:
       - ./.docker.env
     environment:
-      - CELERY_BROKER_URL:${CELERY_BROKER_URL}
-      - CELERY_RESULT_BACKEND: redis://redis
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
     ports:
       - ${FLOWER_PORT}:${FLOWER_HTTP_PORT}
     depends_on:

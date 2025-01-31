@@ -73,49 +73,52 @@ class UserRoutes:
                 is_active=is_active,
             )
             # Generate a unique Redis key
-            redis_key = self.redis_data_storage.generate_redis_key(name, email, phone_no)
-
+            redis_key = RedisDataStorage.generate_redis_key(name, email, phone_no)
+    
             # Generate session ID
             session = getattr(request.state, "session", None)
             if session is None or "session_id" not in session:
-                session = {"session_id": os.urandom(24).hex()}
-                request.state.session = session
-
+                session_id = os.urandom(24).hex()
+                request.state.session = {"session_id": session_id}
+            else:
+                session_id = session["session_id"]
+    
             # Generate OTP and send it
-            otp = self.otp_service.send_otp(phone_no=phone_no, name=name)
-            self.logger.info(f"OTP generated: {phone_no} {otp}")
-           
-            # Combine user data with OTP
-            user_data_with_otp = {
+            task_id = self.otp_service.send_otp(phone_no=phone_no, name=name)
+            self.logger.info(f"OTP generated and task queued: {phone_no}, task_id: {task_id}")
+    
+            # Prepare data to store in Redis
+            redis_data = {
                 "name": name,
                 "email": email,
                 "phone_no": phone_no,
                 "is_active": is_active,
-                "otp": otp,
+                "task_id": task_id  # Store the task_id as a string
             }
-
+    
             # Store the data in Redis
-            self.redis_data_storage.store_data_in_redis(
+            RedisDataStorage.store_data_in_redis(
                 redis_key,
-                user_data_with_otp,
-                session_id=session["session_id"],
+                redis_data,
+                session_id=session_id,
                 expiration=config.expiration_time
             )
-
+            self.logger.info(f"Data successfully stored in Redis with key: {redis_key}")
+    
             # Respond with success
             return JSONResponse(
                 content={
                     "message": "OTP sent and user data stored temporarily in Redis.",
                     "redis_key": redis_key,
-                    "otp": otp
+                    "task_id": task_id  # Return task_id to track the task's status later
                 },
-                headers={"Set-Cookie": f"session_id={session['session_id']}; HttpOnly"}
+                headers={"Set-Cookie": f"session_id={session_id}; HttpOnly"}
             )
-
+    
         except Exception as e:
             self.logger.error(f"Error during user registration: {str(e)}")
             raise HTTPException(status_code=500, detail="An unexpected error occurred.")
-        
+           
     async def get_user_route(self, uuid: str, db: AsyncSession = Depends(get_db)) -> UserResponse:
         """
         Retrieve a user by UUID.

@@ -20,6 +20,18 @@ class RedisClient:
             logger.error(f"Failed to initialize Redis client: {e}")
             raise
 
+    def setex(self, name, time, value):
+        """
+        Set the value of a key with an expiration time.
+        """
+        return self.redis.setex(name, time, value)
+
+    def get(self, name):
+        """
+        Get the value of a key.
+        """
+        return self.redis.get(name)
+
     def connect(self):
         """
         Connect to Redis and test the connection.

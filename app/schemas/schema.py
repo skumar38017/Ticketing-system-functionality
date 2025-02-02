@@ -11,7 +11,6 @@ class UserBase(BaseModel):
     name: str = Field(..., max_length=50)
     email: EmailStr
     phone_no: str = Field(..., max_length=16, min_length=10)  # Adjusted for international support
-    is_active: Optional[bool] = True  # Default value is set here
 
     # Use @field_validator in Pydantic V2
     @field_validator("phone_no")

@@ -36,4 +36,4 @@ def validate_phone(phone_no: str) -> str:
     if len(local_number) != 10:
         raise ValueError("Local phone number must be exactly 10 digits.")
 
-    return f"{country_code} {local_number}"
+    return f"+{country_code}-{local_number}"

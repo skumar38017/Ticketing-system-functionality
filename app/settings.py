@@ -53,8 +53,11 @@ class Settings:
         f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB_RESULT}"
     )
 
+    # Websocket Configuration
+    WEBSOCKET_URL: str = os.getenv("WEBSOCKET_URL", "ws://${SERVER_IP}:8002/ws/ticket")
+
     # Webhook Configuration
-    WEBHOOK_URL: str = os.getenv("WEBHOOK_URL", "http://SERVER_IP:8000/webhook/payment")
+    WEBHOOK_URL: str = os.getenv("WEBHOOK_URL", "http://${SERVER_IP}:8003/webhook/payment")
 
     # SMS Service Configuration
     TWILIO_SID: str = os.getenv("TWILIO_SID", "ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")

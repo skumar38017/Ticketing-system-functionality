@@ -1,4 +1,6 @@
 
+ssh -i "Neon-Stdio-Holi-T25.pem" ubuntu@ec2-44-220-160-232.compute-1.amazonaws.com
+
 export PYTHONPATH=/home/tagglab/Videos/Neon-Stdio-Holi-T25
 ----------------------------------------celery.txt------------------------------------------------------------------------------------------------------------------------
     celery -A app.workers.celery_app.celery worker --loglevel=info
@@ -33,7 +35,7 @@ docker exec -it rabbitmq rabbitmqctl add_user holi-t25 holi-t25
 docker exec -it rabbitmq rabbitmqctl set_permissions -p / holi-t25 ".*" ".*" ".*"
 docker exec -it rabbitmq rabbitmqctl set_user_tags holi-t25 administrator
 
-docker exec -it rabbitmq rabbitmq-plugins enable rabbitmq_management
+docker exec -it rabbitmq rabbitmq-plugins enable rabbitmq_management rabbitmq_management rabbitmq_federation rabbitmq_federation_management rabbitmq_shovel rabbitmq_shovel_management
 
 
 ----------------------------------------Run Containers----------------------------------------
@@ -43,10 +45,13 @@ docker-compose up -d
 docker-compose down
 docker-compose up -d --build
 docker-compose up -d --build --no-cache
-docker-compose --env-file .docker.env up -d --build --no-cache
+docker-compose --env-file .docker.env up --build --no-cache -d
+
 
 docker-compose --env-file .docker.env down
 docker-compose --env-file .docker.env up -d  
+docker restart $(docker ps -aq)
+
 
 ----------------------------------------Logs----------------------------------------
 docker logs rabbitmq
@@ -89,16 +94,28 @@ sudo systemctl restart rabbitmq-server
 sudo systemctl status rabbitmq-server   
 
 
--------------------------------------------------postgres-------------------------------
-sudo chmod -R 755 /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
+--------------------------------------PostgreSQL Sumit-------------------------------
 sudo usermod -aG docker $USER
+sudo chmod 777 /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
+sudo chmod -R u+rw /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
+sudo chmod -R 755 /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
+export PYTHONPATH=$PYTHONPATH:/home/tagglab/Videos/Neon-Stdio-Holi-T25/app
 
-ls -ld /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
-chmod -R u+rw /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
-chmod 777 /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
 
+----------------------------------------PostgreSQL ubuntu-------------------------------------
+sudo chmod -R 755 /home/ubuntu/Neon-Stdio-Holi-T25/postgres_data
+export PYTHONPATH=$PYTHONPATH:/home/ubuntu/Neon-Stdio-Holi-T25/app
+sudo usermod -aG docker $USER
+sudo chmod -R u+rw /home/ubuntu/Neon-Stdio-Holi-T25/postgres_data
+sudo chmod 777 /home/ubuntu/Neon-Stdio-Holi-T25/postgres_data
+export PYTHONPATH=$PYTHONPATH:/home/ubuntu/Neon-Stdio-Holi-T25/app
 psql -h localhost -U postgres -d postgres
 
+
+----------------------------------------omkar-------------------------------------
+sudo chmod -R 755 /home/omkar/Desktop/Neon-Stdio-Holi-T25/postgres_data
+sudo chmod -R 755 /home/omkar/Desktop/Neon-Stdio-Holi-T25/redis_data
+export PYTHONPATH=$PYTHONPATH:/home/omkar/Desktop/Neon-Stdio-Holi-T25/app
 -------------------------------------------------redis-------------------------------
 redis-cli -h redis -p 6379 ping
 redis-cli 
@@ -110,9 +127,6 @@ SCAN 0
 uvicorn main:app --host 0.0.0.0 --port 8000
 uvicorn app.main:app --reload
 
-
--------------------------------------------------export path-------------------------------
-export PYTHONPATH=$PYTHONPATH:/home/tagglab/Videos/Neon-Stdio-Holi-T25/app
 
 -----------------
 newgrp docker

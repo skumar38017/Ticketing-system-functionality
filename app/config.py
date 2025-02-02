@@ -82,6 +82,11 @@ class Config:
     @property
     def webhook_url(self) -> str:
         return settings.WEBHOOK_URL
+    
+    # WebSocket URL
+    @property
+    def websocket_url(self) -> str:
+        return settings.WEBSOCKET_URL
 
     # SMS Service Configuration
     @property

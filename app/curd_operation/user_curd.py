@@ -30,13 +30,12 @@ class UserCRUD:
         """
         try:
             # Log the incoming user data
-            self.logger.info(f"Creating user: {user.name}, {user.email}, {user.phone_no}, {user.is_active}")
+            self.logger.info(f"Creating user: {user.name}, {user.email}, {user.phone_no}")
 
             db_user = User(
                 name=user.name,
                 email=user.email,
                 phone_no=user.phone_no,
-                is_active=user.is_active,
             )
 
             # Add the user to the session and commit to the database

@@ -42,7 +42,7 @@ class RedisDataStorage:
         print(f"Combined data for generate_redis_key: {combined_data}")
         return f"user_data_{RedisDataStorage.hash_data(combined_data)}"
 
-    @staticmethod
+    @staticmethod   
     def store_data_in_redis(key: str, data: dict, session_id: str, expiration: int = config.expiration_time) -> None:
         """
         Store hashed data in Redis with an expiration time and session information.
@@ -51,22 +51,10 @@ class RedisDataStorage:
             # Add session information to the data
             data_with_session = {**data, "session": session_id}
     
-            # Convert the combined data to JSON
-            combined_data = json.dumps(data_with_session)
-            hashed_data = RedisDataStorage.hash_data(combined_data)
-    
-            # Store hashed version data in Redis
-            redis_client.setex(
-                key,
-                expiration,
-                json.dumps({
-                    "original_data": data_with_session,
-                    "hashed_data": hashed_data
-                })
-            )
+            redis_client.setex(key, expiration, json.dumps(data_with_session))
             print(f"Stored data in Redis with key {key}: {data_with_session}")
         except Exception as e:
-            print(f"Error storing data in Redis for key {key}: {e}")
+            print(f"Error storing data in Redis: {e}")
             raise
 
     @staticmethod
@@ -101,3 +89,26 @@ class RedisDataStorage:
         except Exception as e:
             print(f"Error retrieving data from Redis for key {key}: {e}")
             return None
+
+    @staticmethod
+    def delete_data_from_redis(key: str) -> bool:
+        """
+        Delete data from Redis using the key.
+    
+        Args:
+            key (str): The key to delete from Redis.
+    
+        Returns:
+            bool: True if the key was deleted, False if the key does not exist.
+        """
+        try:
+            result = redis_client.delete(key)
+            if result:
+                print(f"Deleted data for key {key}")
+                return True
+            else:
+                print(f"No data found for key {key} to delete.")
+                return False
+        except Exception as e:
+            print(f"Error deleting data from Redis for key {key}: {e}")
+            return False

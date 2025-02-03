@@ -100,7 +100,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
+      redisclient:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${NOCO_HTTP_PORT}/api/healthz"]
@@ -127,8 +127,10 @@ services:
       CELERY_BROKER_URL: ${CELERY_BROKER_URL}
       CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
     depends_on:
-      - rabbitmq
-      - redis
+      rabbitmq:
+        condition: service_healthy
+      redisclient:
+        condition: service_healthy
     volumes:
       - ${PWD}/rabbitmq_data:/var/lib/rabbitmq
       - ${PWD}/redis_data:/data
@@ -160,9 +162,10 @@ services:
       CELERY_BROKER_URL: ${CELERY_BROKER_URL}
       CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
     depends_on:
-      - rabbitmq
-      - redis
-      - postgres
+      rabbitmq:
+        condition: service_healthy
+      redisclient:
+        condition: service_healthy
     volumes:
       - ${PWD}/rabbitmq_data:/var/lib/rabbitmq
       - ${PWD}:/app
@@ -194,8 +197,10 @@ services:
       CELERY_BROKER_URL: ${CELERY_BROKER_URL}
       CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
     depends_on:
-      - rabbitmq
-      - redis
+      rabbitmq:
+        condition: service_healthy
+      redisclient:
+        condition: service_healthy
     volumes:
       - ${PWD}/rabbitmq_data:/var/lib/rabbitmq
       - ${PWD}:/app
@@ -227,8 +232,10 @@ services:
       CELERY_BROKER_URL: ${CELERY_BROKER_URL}
       CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
     depends_on:
-      - rabbitmq
-      - redis
+      rabbitmq:
+        condition: service_healthy
+      redisclient:
+        condition: service_healthy
     volumes:
       - ${PWD}/rabbitmq_data:/var/lib/rabbitmq
       - ${PWD}:/app
@@ -260,8 +267,10 @@ services:
       CELERY_BROKER_URL: ${CELERY_BROKER_URL}
       CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
     depends_on:
-      - rabbitmq
-      - redis
+      rabbitmq:
+        condition: service_healthy
+      redisclient:
+        condition: service_healthy
     volumes:
       - ${PWD}/rabbitmq_data:/var/lib/rabbitmq
       - ${PWD}:/app
@@ -293,8 +302,10 @@ services:
       CELERY_BROKER_URL: ${CELERY_BROKER_URL}
       CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
     depends_on:
-      - rabbitmq
-      - redis
+      rabbitmq:
+        condition: service_healthy
+      redisclient:
+        condition: service_healthy
     volumes:
       - ${PWD}/rabbitmq_data:/var/lib/rabbitmq
       - ${PWD}:/app

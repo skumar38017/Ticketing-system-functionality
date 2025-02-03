@@ -18,7 +18,7 @@ class Settings:
     DEBUG: bool = os.getenv("DEBUG", "False").lower() == "true"
     HOST: str = os.getenv("SERVER_IP", "0.0.0.0")
     PORT: int = int(os.getenv("PORT", 8000))
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "default_secret_key")
+    SECRET_KEY: str = os.getenv("SERVER_IP", "default_secret_key")
     ALLOWED_HOSTS: list[str] = os.getenv("ALLOWED_HOSTS", "*").split(",")
     CORS_ORIGINS: list[str] = os.getenv("CORS_ORIGINS", "*").split(",")
     DEV_MODE: bool = os.getenv("DEV_MODE", "False").lower() == "true"

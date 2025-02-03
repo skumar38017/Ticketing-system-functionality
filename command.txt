@@ -115,7 +115,7 @@ sudo usermod -aG docker $USER
 sudo chmod -R u+rw /home/ubuntu/Neon-Stdio-Holi-T25/postgres_data
 sudo chmod 777 /home/ubuntu/Neon-Stdio-Holi-T25/postgres_data
 sudo chmod 777 /home/tagglab/Videos/Neon-Stdio-Holi-T25/redis_data/./*
-export PYTHONPATH=$PYTHONPATH:/home/ubuntu/Neon-Stdio-Holi-T25/app
+export PYTHONPATH=$PYTHONPATH:{pwd}}/app
 psql -h localhost -U postgres -d postgres
 
 

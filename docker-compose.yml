@@ -1,6 +1,30 @@
 version: '3.8'
 
 services:
+
+  postgres:
+    image: ${POSTGRES_IMAGE}
+    container_name: ${POSTGRES_CONTAINER_NAME}
+    restart: on-failure:3
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_PORT}:${POSTGRES_HTTP_PORT}"
+    env_file:
+      - ./.docker.env
+    networks:
+      - ${NETWORK}
+    volumes:
+      - ${PWD}/postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+
   rabbitmq:
     image: ${RABBITMQ_IMAGE}
     container_name: ${RABBITMQ_CONTAINER_NAME}
@@ -9,7 +33,7 @@ services:
       - "${RABBITMQ_PORT}:${RABBITMQ_HTTP_PORT}"
       - "${RABBIT_WEB_PORT}:${RABBIT_WEB_HTTP_PORT}"
     environment:
-      RABBITMQ_MANAGEMENT_PLUGIN: ${RABBITMQ_MANAGEMENT_PLUGIN}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
       RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST}
@@ -26,31 +50,7 @@ services:
       timeout: 30s
       retries: 5
       start_period: 30s
-
-  postgres:
-      image: ${POSTGRES_IMAGE}
-      container_name: ${POSTGRES_CONTAINER_NAME}
-      restart: on-failure:3
-      environment:
-        POSTGRES_USER: ${POSTGRES_USER}
-        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-        POSTGRES_DB: ${POSTGRES_DB}
-      ports:
-        - "${POSTGRES_PORT}:${POSTGRES_HTTP_PORT}"
-      env_file:
-        - ./.docker.env
-      networks:
-        - ${NETWORK}
-      volumes:
-        - ${PWD}/postgres_data:/var/lib/postgresql/data
-      healthcheck:
-        test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
-        interval: 1m30s
-        timeout: 30s
-        retries: 5
-        start_period: 30s
-
-  redis:
+  redisclient:
     container_name: ${REDIS_CONTAINER_NAME}
     image: ${REDIS_IMAGE}
     restart: on-failure:3
@@ -59,16 +59,16 @@ services:
     env_file:
       - ./.docker.env
     environment:
-      - ALLOW_EMPTY_PASSWORD=yes
       - REDIS_DB_BROKER=${REDIS_DB_BROKER}
       - REDIS_DB_RESULT=${REDIS_DB_RESULT}
     networks:
       - ${NETWORK}
-    volumes:
-      - ${PWD}/redis_data:/app
     depends_on:
       postgres:
         condition: service_healthy
+    volumes:
+      - ${PWD}/redis_data:/data
+      - ${PWD}:/app
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 1m30s
@@ -100,7 +100,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
+      redisclient:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${NOCO_HTTP_PORT}/api/healthz"]
@@ -115,19 +115,22 @@ services:
       dockerfile: ./Dockerfile.WorkerCelery
       args:
         RABBITMQ_URL: ${RABBITMQ_URL}
-        RADIS_URL: ${REDIS_URL}
     container_name: celery-beat-container
     command: celery -A app.workers.celery_app beat --loglevel=info
     env_file:
       - ./.docker.env
     environment:
-      - RABBITMQ_VHOST=rabbitmq
-      - REDIS_HOST=redis
-      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
-      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_DB_BROKER: ${REDIS_DB_BROKER}
+      REDIS_DB_RESULT: ${REDIS_DB_RESULT}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
     depends_on:
-      - rabbitmq
-      - redis
+      rabbitmq:
+        condition: service_healthy
+      redisclient:
+        condition: service_healthy
     volumes:
       - ${PWD}/rabbitmq_data:/var/lib/rabbitmq
       - ${PWD}/redis_data:/data
@@ -147,20 +150,22 @@ services:
       dockerfile: ./Dockerfile.WorkerCelery
       args:
         RABBITMQ_URL: ${RABBITMQ_URL}
-        REDIS_URL: ${REDIS_URL}
     container_name: celery-container
-    command: celery -A app.workers.celery_app worker --loglevel=info -Q * -E --hostname celery_worker%@h
+    command: celery -A app.workers.celery_app worker --loglevel=info -Q * -E --hostname celery_worker@%h
     env_file:
       - ./.docker.env
     environment:
-      - RABBITMQ_VHOST=rabbitmq
-      - REDIS_HOST=redis
-      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
-      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_DB_BROKER: ${REDIS_DB_BROKER}
+      REDIS_DB_RESULT: ${REDIS_DB_RESULT}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
     depends_on:
-      - rabbitmq
-      - redis
-      - postgres
+      rabbitmq:
+        condition: service_healthy
+      redisclient:
+        condition: service_healthy
     volumes:
       - ${PWD}/rabbitmq_data:/var/lib/rabbitmq
       - ${PWD}:/app
@@ -182,18 +187,21 @@ services:
         RABBITMQ_URL: ${RABBITMQ_URL}
         REDIS_URL: ${REDIS_URL}
     container_name: otp_worker
-    command: celery -A app.workers.celery_app worker -Q otp_queue -c 2 --loglevel=info -E --hostname otp_worker%@h
+    command: celery -A app.workers.celery_app worker -Q otp_queue -c 2 --loglevel=info -E --hostname otp_worker@%h
     env_file:
       - ./.docker.env
     environment:
-      - PYTHONUNBUFFERED=1
-      - RABBITMQ_VHOST=rabbitmq
-      - REDIS_HOST=redis
-      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
-      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_DB_BROKER: ${REDIS_DB_BROKER}
+      REDIS_DB_RESULT: ${REDIS_DB_RESULT}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
     depends_on:
-      - rabbitmq
-      - redis
+      rabbitmq:
+        condition: service_healthy
+      redisclient:
+        condition: service_healthy
     volumes:
       - ${PWD}/rabbitmq_data:/var/lib/rabbitmq
       - ${PWD}:/app
@@ -215,18 +223,21 @@ services:
         RABBITMQ_URL: ${RABBITMQ_URL}
         REDIS_URL: ${REDIS_URL}
     container_name: payment_worker
-    command: celery -A app.workers.celery_app worker -Q payment_queue -c 2 --loglevel=info -E --hostname paymentworker%@h
+    command: celery -A app.workers.celery_app worker -Q payment_queue -c 2 --loglevel=info -E --hostname payment_worker@%h
     env_file:
       - ./.docker.env
     environment:
-      - PYTHONUNBUFFERED=1
-      - RABBITMQ_VHOST=rabbitmq
-      - REDIS_HOST=redis
-      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
-      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_DB_BROKER: ${REDIS_DB_BROKER}
+      REDIS_DB_RESULT: ${REDIS_DB_RESULT}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
     depends_on:
-      - rabbitmq
-      - redis
+      rabbitmq:
+        condition: service_healthy
+      redisclient:
+        condition: service_healthy
     volumes:
       - ${PWD}/rabbitmq_data:/var/lib/rabbitmq
       - ${PWD}:/app
@@ -248,18 +259,21 @@ services:
         RABBITMQ_URL: ${RABBITMQ_URL}
         REDIS_URL: ${REDIS_URL}
     container_name: qr_worker
-    command: celery -A app.workers.celery_app worker -Q qr_queue -c 2 --loglevel=info -E --hostname qrworker%@h
+    command: celery -A app.workers.celery_app worker -Q qr_queue -c 2 --loglevel=info -E --hostname qr_worker@%h
     env_file:
       - ./.docker.env
     environment:
-      - PYTHONUNBUFFERED=1
-      - RABBITMQ_VHOST=rabbitmq
-      - REDIS_HOST=redis
-      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
-      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_DB_BROKER: ${REDIS_DB_BROKER}
+      REDIS_DB_RESULT: ${REDIS_DB_RESULT}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
     depends_on:
-      - rabbitmq
-      - redis
+      rabbitmq:
+        condition: service_healthy
+      redisclient:
+        condition: service_healthy
     volumes:
       - ${PWD}/rabbitmq_data:/var/lib/rabbitmq
       - ${PWD}:/app
@@ -281,18 +295,21 @@ services:
         RABBITMQ_URL: ${RABBITMQ_URL}
         REDIS_URL: ${REDIS_URL}
     container_name: email_worker
-    command: celery -A app.workers.celery_app worker -Q email_queue -c 2 --loglevel=info -E --hostname emailworker%@h
+    command: celery -A app.workers.celery_app worker -Q email_queue -c 2 --loglevel=info -E --hostname email_worker@%h
     env_file:
       - ./.docker.env
     environment:
-      - PYTHONUNBUFFERED=1
-      - RABBITMQ_VHOST=rabbitmq
-      - REDIS_HOST=redis
-      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
-      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_DB_BROKER: ${REDIS_DB_BROKER}
+      REDIS_DB_RESULT: ${REDIS_DB_RESULT}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
     depends_on:
-      - rabbitmq
-      - redis
+      rabbitmq:
+        condition: service_healthy
+      redisclient:
+        condition: service_healthy
     volumes:
       - ${PWD}/rabbitmq_data:/var/lib/rabbitmq
       - ${PWD}:/app
@@ -306,6 +323,11 @@ services:
       retries: 5
       start_period: 30s
 
+volumes:
+  postgres_data: {}
+  rabbitmq_data: {}
+  redis_data: {}
+  nocodb_data: {}
 
 networks:
   backend-network:

@@ -1,58 +1,17 @@
-/etc/supervisor/conf.d/celery_workers.conf
+
+# 
+celery -A app.workers.celery_app.celery_app worker --loglevel=info -E
+
+# flower
+celery -A app.workers.celery_app.celery_app flower --port=5555
+
+docker ps | grep celery 
 
 
-[program:otp_queue_worker]
-command=celery -A app.workers.celery_app worker -Q otp_queue -c 2 --loglevel=info
-directory=/path/to/your/project
-autostart=true
-autorestart=true
-stderr_logfile=/var/log/celery/otp_queue_worker.err.log
-stdout_logfile=/var/log/celery/otp_queue_worker.out.log
-
-[program:payment_queue_worker]
-command=celery -A app.workers.celery_app worker -Q payment_queue -c 2 --loglevel=info
-directory=/path/to/your/project
-autostart=true
-autorestart=true
-stderr_logfile=/var/log/celery/payment_queue_worker.err.log
-stdout_logfile=/var/log/celery/payment_queue_worker.out.log
-
-[program:qr_queue_worker]
-command=celery -A app.workers.celery_app worker -Q qr_queue -c 2 --loglevel=info
-directory=/path/to/your/project
-autostart=true
-autorestart=true
-stderr_logfile=/var/log/celery/qr_queue_worker.err.log
-stdout_logfile=/var/log/celery/qr_queue_worker.out.log
-
-[program:email_queue_worker]
-command=celery -A app.workers.celery_app worker -Q email_queue -c 2 --loglevel=info
-directory=/path/to/your/project
-autostart=true
-autorestart=true
-stderr_logfile=/var/log/celery/email_queue_worker.err.log
-stdout_logfile=/var/log/celery/email_queue_worker.out.log
-
-
-
-sudo supervisorctl reread
-sudo supervisorctl update
-sudo supervisorctl start all
-
------------------------------------------------------------------------------------------------
-
-# Workers for otp_queue
-celery -A app.workers.celery_app worker -Q otp_queue -c 2 --loglevel=info
-
-# Workers for payment_queue
-celery -A app.workers.celery_app worker -Q payment_queue -c 2 --loglevel=info
-
-# Workers for qr_queue
-celery -A app.workers.celery_app worker -Q qr_queue -c 2 --loglevel=info
-
-# Workers for email_queue
-celery -A app.workers.celery_app worker -Q email_queue -c 2 --loglevel=info
-
-
------------------------------------------------------------------------------------------------
-
+---------------------------------- set_permissions.txt ----------------------------------------
+sudo usermod -aG docker $USER
+sudo chmod 777 /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
+sudo chmod -R u+rw /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
+sudo chmod -R 755 /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
+export PYTHONPATH=$PYTHONPATH:/home/tagglab/Videos/Neon-Stdio-Holi-T25/app
+export PYTHONPATH=/home/tagglab/Videos/Neon-Stdio-Holi-T25/app

@@ -49,6 +49,8 @@ if [ -d "/home/tagglab/Videos/Neon-Stdio-Holi-T25/rabbitmq_data" ]; then
     sudo chmod +x /home/tagglab/Videos/Neon-Stdio-Holi-T25/rabbitmq_data/plugins-entrypoint.sh
     sudo chown -R 1000:1000 /home/tagglab/Videos/Neon-Stdio-Holi-T25/rabbitmq_data
     sudo chmod 400  /home/tagglab/Videos/Neon-Stdio-Holi-T25/rabbitmq_data/.erlang.cookie
+    sudo chmod 777 /home/tagglab/Videos/Neon-Stdio-Holi-T25/redis_data/./*
+    sudo chmod 777 /home/tagglab/Videos/Neon-Stdio-Holi-T25/rabbitmq_data/./*
 else
     echo "RabbitMQ data directory not found!"
 fi
@@ -60,14 +62,18 @@ export PYTHONPATH="$PYTHONPATH:/home/tagglab/Videos/Neon-Stdio-Holi-T25/app"
 echo "Starting Docker containers..."
 
 # Use Docker Compose with the specified environment file
-docker-compose --env-file .docker.env up -d
+docker-compose --env-file .docker.env up -d --build
 
-docker restart $(docker ps -aq)   
 
 sudo chmod -R 755 /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
 sudo chown -R 1000:1000 /home/tagglab/Videos/Neon-Stdio-Holi-T25/rabbitmq_data
 sudo chown -R 755 /home/tagglab/Videos/Neon-Stdio-Holi-T25/rabbitmq_data
 sudo chmod 400  /home/tagglab/Videos/Neon-Stdio-Holi-T25/rabbitmq_data/.erlang.cookie
+sudo chmod 777 /home/tagglab/Videos/Neon-Stdio-Holi-T25/redis_data/./*
+sudo chmod 777 /home/tagglab/Videos/Neon-Stdio-Holi-T25/rabbitmq_data/./*
+export PYTHONPATH=/home/tagglab/Videos/Neon-Stdio-Holi-T25/app
+export PYTHONPATH=/home/tagglab/Videos/Neon-Stdio-Holi-T25
+docker restart $(docker ps -aq)   
 
 # List all running containers
 docker ps -a

@@ -36,6 +36,8 @@ docker exec -it rabbitmq rabbitmqctl set_permissions -p / holi-t25 ".*" ".*" ".*
 docker exec -it rabbitmq rabbitmqctl set_user_tags holi-t25 administrator
 
 docker exec -it rabbitmq rabbitmq-plugins enable rabbitmq_management rabbitmq_management rabbitmq_federation rabbitmq_federation_management rabbitmq_shovel rabbitmq_shovel_management
+docker exec -it rabbitmq  rabbitmq-plugins enable rabbitmq_management
+
 
 
 ----------------------------------------Run Containers----------------------------------------
@@ -98,8 +100,12 @@ sudo systemctl status rabbitmq-server
 sudo usermod -aG docker $USER
 sudo chmod 777 /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
 sudo chmod -R u+rw /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
+sudo chmod 777 /home/tagglab/Videos/Neon-Stdio-Holi-T25/redis_data/./*
+sudo chmod -R 755 /home/tagglab/Videos/Neon-Stdio-Holi-T25/redis_data/redis.conf
+sudo chmod 777 /home/tagglab/Videos/Neon-Stdio-Holi-T25/rabbitmq_data/./*
 sudo chmod -R 755 /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
-export PYTHONPATH=$PYTHONPATH:/home/tagglab/Videos/Neon-Stdio-Holi-T25/app
+
+export PYTHONPATH=$PYTHONPATH:$(pwd)
 
 
 ----------------------------------------PostgreSQL ubuntu-------------------------------------
@@ -108,6 +114,7 @@ export PYTHONPATH=$PYTHONPATH:/home/ubuntu/Neon-Stdio-Holi-T25/app
 sudo usermod -aG docker $USER
 sudo chmod -R u+rw /home/ubuntu/Neon-Stdio-Holi-T25/postgres_data
 sudo chmod 777 /home/ubuntu/Neon-Stdio-Holi-T25/postgres_data
+sudo chmod 777 /home/tagglab/Videos/Neon-Stdio-Holi-T25/redis_data/./*
 export PYTHONPATH=$PYTHONPATH:/home/ubuntu/Neon-Stdio-Holi-T25/app
 psql -h localhost -U postgres -d postgres
 

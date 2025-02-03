@@ -9,7 +9,7 @@ from app.tasks.otp_task import send_otp_task
 
 # Get the hostname of the machine to create a unique worker name
 hostname = socket.gethostname()
-unique_worker_name = f"otp_worker_{hostname}"
+unique_worker_name = f"worker_{hostname}"
 
 # Initialize the Celery application
 celery_app = Celery(

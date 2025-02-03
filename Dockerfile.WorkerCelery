@@ -7,7 +7,10 @@ FROM python:3.12-slim
 ENV PYTHONUNBUFFERED=1
 ENV CELERY_RESULT_BACKEND=redis://redis:6379/0
 ENV CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
-ENV RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672//
+ENV PYTHONPATH=/home/tagglab/Videos/Neon-Stdio-Holi-T25/app
+ENV CELERY_ACCEPT_CONTENT=json
+ENV CELERY_TASK_SERIALIZER=json
+ENV CELERY_TIMEZONE=UTC
 
 # Install necessary system dependencies
 RUN apt-get update && apt-get install -y \

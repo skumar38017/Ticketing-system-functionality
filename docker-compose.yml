@@ -9,6 +9,7 @@ services:
       - "${RABBITMQ_PORT}:${RABBITMQ_HTTP_PORT}"
       - "${RABBIT_WEB_PORT}:${RABBIT_WEB_HTTP_PORT}"
     environment:
+      RABBITMQ_MANAGEMENT_PLUGIN: ${RABBITMQ_MANAGEMENT_PLUGIN}
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
       RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST}
@@ -35,10 +36,13 @@ services:
     env_file:
       - ./.docker.env
     environment:
+      - ALLOW_EMPTY_PASSWORD=yes
       - REDIS_DB_BROKER=${REDIS_DB_BROKER}
       - REDIS_DB_RESULT=${REDIS_DB_RESULT}
     networks:
       - ${NETWORK}
+    volumes:
+      - ${PWD}/redis_data:/app
     depends_on:
       postgres:
         condition: service_healthy
@@ -85,7 +89,7 @@ services:
       args:
         RABBITMQ_URL: ${RABBITMQ_URL}
     container_name: celery-container
-    command: celery -A app.workers.celery_app worker --loglevel=info -Q * -E
+    command: celery -A app.workers.celery_app worker --loglevel=info -Q * -E --hostname celery_worker%@h
     env_file:
       - ./.docker.env
     environment:
@@ -171,7 +175,7 @@ services:
       args:
         RABBITMQ_URL: ${RABBITMQ_URL}
     container_name: otp_worker
-    command: celery -A app.workers.celery_app worker -Q otp_queue -c 2 --loglevel=info -E
+    command: celery -A app.workers.celery_app worker -Q otp_queue -c 2 --loglevel=info -E --hostname otp_worker%@h
     env_file:
       - ./.docker.env
     environment:
@@ -201,7 +205,7 @@ services:
       args:
         RABBITMQ_URL: ${RABBITMQ_URL}
     container_name: payment_worker
-    command: celery -A app.workers.celery_app worker -Q payment_queue -c 2 --loglevel=info -E
+    command: celery -A app.workers.celery_app worker -Q payment_queue -c 2 --loglevel=info -E --hostname paymentworker%@h
     env_file:
       - ./.docker.env
     environment:
@@ -231,7 +235,7 @@ services:
       args:
         RABBITMQ_URL: ${RABBITMQ_URL}
     container_name: qr_worker
-    command: celery -A app.workers.celery_app worker -Q qr_queue -c 2 --loglevel=info -E
+    command: celery -A app.workers.celery_app worker -Q qr_queue -c 2 --loglevel=info -E --hostname qrworker%@h
     env_file:
       - ./.docker.env
     environment:
@@ -261,7 +265,7 @@ services:
       args:
         RABBITMQ_URL: ${RABBITMQ_URL}
     container_name: email_worker
-    command: celery -A app.workers.celery_app worker -Q email_queue -c 2 --loglevel=info -E
+    command: celery -A app.workers.celery_app worker -Q email_queue -c 2 --loglevel=info -E --hostname emailworker%@h
     env_file:
       - ./.docker.env
     environment:
@@ -285,31 +289,23 @@ services:
       start_period: 30s
 
   flower:
-    image: ${FLOWER_IMAGE}
     container_name: ${FLOWER_CONTAINER_NAME}
-    restart: on-failure:3
-    command: celery -A app.workers.celery_app flower --port=${FLOWER_PORT} --broker=${CELERY_BROKER_URL}
-    env_file:
-      - ./.docker.env
-    environment:
-      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
-      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+    image: ${FLOWER_IMAGE}
     ports:
-      - ${FLOWER_PORT}:${FLOWER_HTTP_PORT}
-    depends_on:
-      - rabbitmq
-      - redis
-      - otp_worker
-      - payment_worker
-      - qr_worker 
-      - email_worker
+      - "${FLOWER_PORT}:${FLOWER_HTTP_PORT}"
+    command: celery -A app.workers.celery_app flower
+    environment:
+      - FLOWER_BASIC_AUTH=${FLOWER_USER}:${FLOWER_PASSWORD}
+      - FLOWER_BROKER_API=${CELERY_BROKER_URL}
     networks:
       - ${NETWORK}
+    depends_on:
+      - rabbitmq
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${FLOWER_PORT}"]
+      test: ["CMD", "curl", "-f", "http://localhost:${FLOWER_HTTP_PORT}/api"]
       interval: 1m30s
       timeout: 30s
-      retries: 5  
+      retries: 5
       start_period: 30s
 
   watchtower:
@@ -331,12 +327,6 @@ services:
       timeout: 30s
       retries: 5
       start_period: 30s
-
-volumes:
-  postgres_data: {}
-  rabbitmq_data: {}
-  redis_data: {}
-  nocodb_data: {}
 
 networks:
   backend-network:

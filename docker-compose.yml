@@ -65,6 +65,9 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    volumes:
+      - ${PWD}/redis_data:/data
+      - ${PWD}:/app
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 1m30s

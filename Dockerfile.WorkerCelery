@@ -6,8 +6,8 @@ FROM python:3.12-slim
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672//
-ENV RADIS_URL=redis://redis:6379/0
-ENV CELERY_RESULT_BACKEND=redis://redis:6379/0
+ENV RADIS_URL=redis://redisclient:6379/0
+ENV CELERY_RESULT_BACKEND=redis://redisclient:6379/0
 ENV CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
 ENV RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672//
 

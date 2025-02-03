@@ -33,6 +33,7 @@ services:
       - "${RABBITMQ_PORT}:${RABBITMQ_HTTP_PORT}"
       - "${RABBIT_WEB_PORT}:${RABBIT_WEB_HTTP_PORT}"
     environment:
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
       RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST}
@@ -49,7 +50,7 @@ services:
       timeout: 30s
       retries: 5
       start_period: 30s
-  redis:
+  redisclient:
     container_name: ${REDIS_CONTAINER_NAME}
     image: ${REDIS_IMAGE}
     restart: on-failure:3
@@ -119,8 +120,12 @@ services:
     env_file:
       - ./.docker.env
     environment:
-      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
-      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_DB_BROKER: ${REDIS_DB_BROKER}
+      REDIS_DB_RESULT: ${REDIS_DB_RESULT}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
     depends_on:
       - rabbitmq
       - redis
@@ -148,8 +153,12 @@ services:
     env_file:
       - ./.docker.env
     environment:
-      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
-      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_DB_BROKER: ${REDIS_DB_BROKER}
+      REDIS_DB_RESULT: ${REDIS_DB_RESULT}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
     depends_on:
       - rabbitmq
       - redis
@@ -178,9 +187,12 @@ services:
     env_file:
       - ./.docker.env
     environment:
-      - PYTHONUNBUFFERED=1
-      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
-      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_DB_BROKER: ${REDIS_DB_BROKER}
+      REDIS_DB_RESULT: ${REDIS_DB_RESULT}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
     depends_on:
       - rabbitmq
       - redis
@@ -208,9 +220,12 @@ services:
     env_file:
       - ./.docker.env
     environment:
-      - PYTHONUNBUFFERED=1
-      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
-      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_DB_BROKER: ${REDIS_DB_BROKER}
+      REDIS_DB_RESULT: ${REDIS_DB_RESULT}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
     depends_on:
       - rabbitmq
       - redis
@@ -238,9 +253,12 @@ services:
     env_file:
       - ./.docker.env
     environment:
-      - PYTHONUNBUFFERED=1
-      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
-      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_DB_BROKER: ${REDIS_DB_BROKER}
+      REDIS_DB_RESULT: ${REDIS_DB_RESULT}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
     depends_on:
       - rabbitmq
       - redis
@@ -268,9 +286,12 @@ services:
     env_file:
       - ./.docker.env
     environment:
-      - PYTHONUNBUFFERED=1
-      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
-      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_DB_BROKER: ${REDIS_DB_BROKER}
+      REDIS_DB_RESULT: ${REDIS_DB_RESULT}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
     depends_on:
       - rabbitmq
       - redis

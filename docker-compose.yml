@@ -1,6 +1,30 @@
 version: '3.8'
 
 services:
+
+  postgres:
+    image: ${POSTGRES_IMAGE}
+    container_name: ${POSTGRES_CONTAINER_NAME}
+    restart: on-failure:3
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_PORT}:${POSTGRES_HTTP_PORT}"
+    env_file:
+      - ./.docker.env
+    networks:
+      - ${NETWORK}
+    volumes:
+      - ${PWD}/postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+
   rabbitmq:
     image: ${RABBITMQ_IMAGE}
     container_name: ${RABBITMQ_CONTAINER_NAME}
@@ -25,7 +49,6 @@ services:
       timeout: 30s
       retries: 5
       start_period: 30s
-
   redis:
     container_name: ${REDIS_CONTAINER_NAME}
     image: ${REDIS_IMAGE}
@@ -44,6 +67,39 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+
+  nocodb:
+    container_name: ${NOCO_CONTAINER_NAME}
+    image: ${NOCO_IMAGE}
+    restart: on-failure:3
+    environment:
+      - DB_TYPE=${DB_TYPE}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - DB_NAME=${DB_NAME}
+      - NC_REDIS_URL=${CELERY_RESULT_BACKEND}
+      - NC_DB=${NC_DB}
+    ports:
+      - "${NOCO_DB_PORT}:${NOCO_HTTP_PORT}"
+    env_file:
+      - ./.docker.env
+    volumes:
+      - ${PWD}/nocodb_data:/usr/app/data
+    networks:
+      - ${NETWORK}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${NOCO_HTTP_PORT}/api/healthz"]
       interval: 1m30s
       timeout: 30s
       retries: 5
@@ -85,7 +141,7 @@ services:
       args:
         RABBITMQ_URL: ${RABBITMQ_URL}
     container_name: celery-container
-    command: celery -A app.workers.celery_app worker --loglevel=info -Q * -E
+    command: celery -A app.workers.celery_app worker --loglevel=info -Q * -E --hostname celery_worker@%h
     env_file:
       - ./.docker.env
     environment:
@@ -108,62 +164,6 @@ services:
       retries: 5
       start_period: 30s
 
-  postgres:
-    image: ${POSTGRES_IMAGE}
-    container_name: ${POSTGRES_CONTAINER_NAME}
-    restart: on-failure:3
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    ports:
-      - "${POSTGRES_PORT}:${POSTGRES_HTTP_PORT}"
-    env_file:
-      - ./.docker.env
-    networks:
-      - ${NETWORK}
-    volumes:
-      - ${PWD}/postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
-      interval: 1m30s
-      timeout: 30s
-      retries: 5
-      start_period: 30s
-
-  nocodb:
-    container_name: ${NOCO_CONTAINER_NAME}
-    image: ${NOCO_IMAGE}
-    restart: on-failure:3
-    environment:
-      - DB_TYPE=${DB_TYPE}
-      - DB_HOST=${DB_HOST}
-      - DB_PORT=${DB_PORT}
-      - DB_USER=${DB_USER}
-      - DB_PASS=${DB_PASS}
-      - DB_NAME=${DB_NAME}
-      - NC_REDIS_URL=${CELERY_RESULT_BACKEND}
-      - NC_DB=${NC_DB}
-    ports:
-      - "${NOCO_DB_PORT}:${NOCO_HTTP_PORT}"
-    env_file:
-      - ./.docker.env
-    volumes:
-      - ${PWD}/nocodb_data:/usr/app/data
-    networks:
-      - ${NETWORK}
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${NOCO_HTTP_PORT}/api/healthz"]
-      interval: 1m30s
-      timeout: 30s
-      retries: 5
-      start_period: 30s
-
   otp_worker:
     build:
       context: .
@@ -171,7 +171,7 @@ services:
       args:
         RABBITMQ_URL: ${RABBITMQ_URL}
     container_name: otp_worker
-    command: celery -A app.workers.celery_app worker -Q otp_queue -c 2 --loglevel=info -E
+    command: celery -A app.workers.celery_app worker -Q otp_queue -c 2 --loglevel=info -E --hostname otp_worker@%h
     env_file:
       - ./.docker.env
     environment:
@@ -201,7 +201,7 @@ services:
       args:
         RABBITMQ_URL: ${RABBITMQ_URL}
     container_name: payment_worker
-    command: celery -A app.workers.celery_app worker -Q payment_queue -c 2 --loglevel=info -E
+    command: celery -A app.workers.celery_app worker -Q payment_queue -c 2 --loglevel=info -E --hostname payment_worker@%h
     env_file:
       - ./.docker.env
     environment:
@@ -231,7 +231,7 @@ services:
       args:
         RABBITMQ_URL: ${RABBITMQ_URL}
     container_name: qr_worker
-    command: celery -A app.workers.celery_app worker -Q qr_queue -c 2 --loglevel=info -E
+    command: celery -A app.workers.celery_app worker -Q qr_queue -c 2 --loglevel=info -E --hostname qr_worker@%h
     env_file:
       - ./.docker.env
     environment:
@@ -261,7 +261,7 @@ services:
       args:
         RABBITMQ_URL: ${RABBITMQ_URL}
     container_name: email_worker
-    command: celery -A app.workers.celery_app worker -Q email_queue -c 2 --loglevel=info -E
+    command: celery -A app.workers.celery_app worker -Q email_queue -c 2 --loglevel=info -E --hostname email_worker@%h
     env_file:
       - ./.docker.env
     environment:
@@ -279,54 +279,6 @@ services:
       - ${NETWORK}
     healthcheck:
       test: ["CMD", "celery", "inspect", "ping"]
-      interval: 1m30s
-      timeout: 30s
-      retries: 5
-      start_period: 30s
-
-  flower:
-    image: ${FLOWER_IMAGE}
-    container_name: ${FLOWER_CONTAINER_NAME}
-    restart: on-failure:3
-    command: celery -A app.workers.celery_app flower --port=${FLOWER_PORT} --broker=${CELERY_BROKER_URL}
-    env_file:
-      - ./.docker.env
-    environment:
-      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
-      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
-    ports:
-      - ${FLOWER_PORT}:${FLOWER_HTTP_PORT}
-    depends_on:
-      - rabbitmq
-      - redis
-      - otp_worker
-      - payment_worker
-      - qr_worker 
-      - email_worker
-    networks:
-      - ${NETWORK}
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${FLOWER_PORT}"]
-      interval: 1m30s
-      timeout: 30s
-      retries: 5  
-      start_period: 30s
-
-  watchtower:
-    container_name: ${WATCHTOWER_CONTAINER_NAME}
-    image: ${WATCHTOWER_IMAGE}
-    restart: always
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    command: --interval 300 --cleanup
-    ports:
-      - "${WATCHTOWER_PORT}:${WATCHTOWER_HTTP_PORT}"
-    env_file:
-      - ./.docker.env
-    networks:
-      - ${NETWORK}
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${WATCHTOWER_PORT}"]
       interval: 1m30s
       timeout: 30s
       retries: 5

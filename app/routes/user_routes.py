@@ -14,6 +14,7 @@ from app.utils.redis_data_storage import RedisDataStorage
 from app.curd_operation.user_curd import UserCRUD
 from app.services.otp_service import OTPService
 from app.utils.generate_otp import generate_otp
+from app.utils.otp_verification import verify_otp
 from app.workers.celery_app import trigger_task_and_get_id
 
 class UserRoutes:
@@ -35,6 +36,13 @@ class UserRoutes:
             status_code=201,
             description="Create a new user for the ticketing system and store user information in the database",
         )(self.create_user_route)
+
+        self.router.post(
+            "/otpVerify",
+            response_model=UserResponse,
+            status_code=200,
+            description="Verify otp and send the user details into the response."
+        )(self.verify_otp_route)
 
         self.router.get(
             "/user/{uuid}",
@@ -114,6 +122,34 @@ class UserRoutes:
         except Exception as e:
             self.logger.error(f"Error during user registration: {str(e)}")
             raise HTTPException(status_code=500, detail="An unexpected error occurred.")
+        
+    async def verify_otp_route(
+            self,
+            redis_key: str = Form(..., description="Redis key storing OTP"),
+            otp: str = Form(..., description="OTP entered by the user"),
+            db: AsyncSession = Depends(get_db),
+        ) -> JSONResponse:
+        """
+        Verify the OTP and register the user if the OTP is valid.
+        """
+        try:
+            user_data = await verify_otp(redis_key, otp)
+            print('user_data',user_data)
+
+            if not user_data:
+                raise HTTPException(status_code=400, detail="Invalid or expired OTP.")
+
+            # Store user in the database
+            # new_user = UserCreate(**user_data)
+            # created_user = await UserCRUD().create_user(db, new_user)
+            
+            user_data.pop('session')
+            return JSONResponse(
+                content={"message": "User registered successfully","user_data": user_data}
+            )
+
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error verifying OTP: {str(e)}")
             
     async def get_user_route(self, uuid: str, db: AsyncSession = Depends(get_db)) -> UserResponse:
         """

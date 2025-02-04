@@ -73,9 +73,9 @@ def trigger_task_and_get_id(phone_no, name, otp):
         """
         # Trigger the task (example task)
         task_result = celery_app.send_task('app.tasks.otp_task.send_otp_task', args=[phone_no, name, otp])
-
         # Automatically get the task_id
         task_id = task_result.id
+        print(f"Task sent with ID: {task_result.id}")
         logger.info(f"Triggered task with ID: {task_id}")
 
         # Now we can create an AsyncResult using the task_id

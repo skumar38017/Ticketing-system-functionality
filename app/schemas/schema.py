@@ -33,6 +33,19 @@ class UserResponse(UserBase):
     class Config:
         from_attributes = True  
 
+#  VerrifyBase
+class VerifyBase(BaseModel):
+    session_id: str
+    otp: str
+
+#  VerifyOTPResponse
+class VerifyOTPResponse(BaseModel):
+    message: str
+    redis_key: str
+    task_id: str
+    success: bool
+    session_id: str
+
 # Payment Schema
 class PaymentBase(BaseModel):
     ticket_description: str = Field(..., max_length=500)

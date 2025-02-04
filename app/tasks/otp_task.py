@@ -3,7 +3,7 @@ from celery import shared_task
 import logging
 import requests
 from app.config import config
-from celery.signals import task_prerun  # Use task_prerun instead of task_registered
+from celery.signals import task_prerun
 from celery.exceptions import MaxRetriesExceededError
 from app.services.websocket_service import WebSocketHandler
 
@@ -13,9 +13,15 @@ logger = logging.getLogger("celery.task")
 # This handler listens for the task execution event (before task starts)
 @task_prerun.connect
 def task_prerun_handler(sender, task_id, **kwargs):
+    print (f"Task {sender} with ID {task_id} is about to start.")
     logger.info(f"Task {sender} with ID {task_id} is about to start.")
 
-@shared_task(name="app.tasks.otp_task.send_otp_task", max_retries=5, default_retry_delay=5, acks_late=True)
+@shared_task(
+    name="app.tasks.otp_task.send_otp_task",
+    max_retries=5,
+    default_retry_delay=5,
+    acks_late=True,
+)
 def send_otp_task(phone_no: str, name: str, otp: str):
     try:
         # Initialize WebSocketHandler once
@@ -51,6 +57,7 @@ def send_otp_task(phone_no: str, name: str, otp: str):
             # WebSocket: Notify the client that the OTP was sent successfully
             websocket_handler.send_otp(phone_no, otp)
             websocket_handler.send_task_status(phone_no, "success")
+
             return {"status": "success", "message": "OTP sent successfully"}
         else:
             raise Exception(f"Failed to send OTP: {response.status_code} - {response.text}")

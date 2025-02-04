@@ -54,7 +54,7 @@ class Settings:
     )
 
     # Websocket Configuration
-    WEBSOCKET_URL: str = os.getenv("WEBSOCKET_URL", "ws://${SERVER_IP}:8002/ws/ticket")
+    WEBSOCKET_URL: str = os.getenv("WEBSOCKET_URL", "ws://${SERVER_IP}:8002/ws")
 
     # Webhook Configuration
     WEBHOOK_URL: str = os.getenv("WEBHOOK_URL", "http://${SERVER_IP}:8003/webhook/payment")

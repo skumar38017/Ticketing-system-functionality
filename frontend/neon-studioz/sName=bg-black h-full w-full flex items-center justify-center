@@ -1,0 +1,119 @@
+[33mcommit d947d995c2697b27cf21393ce9324acb90014ec9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: ParthGupta84616 <parthguptaji20@gmail.com>
+Date:   Thu Jan 30 05:11:58 2025 +0530
+
+    Complete About
+
+[33mcommit b9cac7b57358cc28c52d4a3c6c416bef8725d12c[m
+Author: Mayank Piparde <mayankpiparde20@gmail.com>
+Date:   Wed Jan 29 20:52:08 2025 +0530
+
+    about page
+
+[33mcommit 81d7bd47e14f8df1b087d7c5d03bde1d2603b0b9[m
+Author: Mayank Piparde <mayankpiparde20@gmail.com>
+Date:   Wed Jan 29 18:50:10 2025 +0530
+
+    QRpage
+
+[33mcommit 769520ef4b3ddc72e9ec17ade85227b16c2f8d94[m
+Author: ParthGupta84616 <parthguptaji20@gmail.com>
+Date:   Wed Jan 29 18:37:40 2025 +0530
+
+    New Desgin
+
+[33mcommit 8a740fa7776b97c0c45c4bf34c79a2e9d66cb755[m
+Author: ParthGupta84616 <parthguptaji20@gmail.com>
+Date:   Wed Jan 29 06:22:03 2025 +0530
+
+    Added Responsive Hero Section
+
+[33mcommit 67f433dfab739700cdbadabeb888bf6a6cfb7e1a[m
+Author: Mayank Piparde <mayankpiparde20@gmail.com>
+Date:   Wed Jan 29 02:28:03 2025 +0530
+
+    home setup
+
+[33mcommit 8a404d4716a9a680ba6b8007d3b47e74c88921aa[m
+Author: ParthGupta84616 <parthguptaji20@gmail.com>
+Date:   Tue Jan 28 20:27:05 2025 +0530
+
+    Uptill 8Pm 28/01
+
+[33mcommit 15fa8bfa8d5f56d90507a98c3cc5b992952f8b3f[m
+Author: Mayank Piparde <mayankpiparde20@gmail.com>
+Date:   Tue Jan 28 17:50:38 2025 +0530
+
+    homehero
+
+[33mcommit 5547d71578d84d9aa952e4a957cb75898250b0b9[m
+Author: ParthGupta84616 <parthguptaji20@gmail.com>
+Date:   Tue Jan 28 15:03:56 2025 +0530
+
+    Svg
+
+[33mcommit f4d9b3ce3e4180661043ad08b679fbd6cc746bf4[m
+Author: ParthGupta84616 <parthguptaji20@gmail.com>
+Date:   Tue Jan 28 05:23:34 2025 +0530
+
+    Complete Responsove
+
+[33mcommit 8b9c4f35c1742eadcac8da96f227c2134046d66d[m
+Author: ParthGupta84616 <parthguptaji20@gmail.com>
+Date:   Tue Jan 28 02:53:05 2025 +0530
+
+    Footer
+
+[33mcommit 7698e9f7dd7d5b2938aedf9b5efed14ff4e4ff75[m
+Author: ParthGupta84616 <parthguptaji20@gmail.com>
+Date:   Tue Jan 28 02:24:04 2025 +0530
+
+    Navbar + Timmer + Bug Fixed
+
+[33mcommit 53da658de280658c995b0011eeed178cad2e0147[m
+Author: Mayank Piparde <mayankpiparde20@gmail.com>
+Date:   Tue Jan 28 02:16:12 2025 +0530
+
+    responsive navbar
+
+[33mcommit 4f3c28c7badb7d1b179f38185fcb1fba90bfbd47[m
+Author: ParthGupta84616 <parthguptaji20@gmail.com>
+Date:   Tue Jan 28 02:03:42 2025 +0530
+
+    Added Timmer
+
+[33mcommit e6987f49bac1710d7bb4986943da6d40c43a5594[m
+Author: ParthGupta84616 <parthguptaji20@gmail.com>
+Date:   Mon Jan 27 23:11:31 2025 +0530
+
+    Added NavBar
+
+[33mcommit d185834f41ddd2a93ce3aa06a0705fa2dd5181c0[m
+Author: ParthGupta84616 <parthguptaji20@gmail.com>
+Date:   Mon Jan 27 20:08:23 2025 +0530
+
+    added spot light
+
+[33mcommit 55b7a9c399cbe3888eacb89a0c1bb06f0445ec82[m
+Author: ParthGupta84616 <parthguptaji20@gmail.com>
+Date:   Mon Jan 27 19:42:49 2025 +0530
+
+    Shadcn Added
+
+[33mcommit c7ec5f202c09ad6d3dc2b798919a573909647308[m
+Author: Mayank Piparde <mayankpiparde20@gmail.com>
+Date:   Mon Jan 27 04:35:03 2025 +0530
+
+    structure
+
+[33mcommit 7e32991a15e9620d8667bc837460e9b6029832f3[m
+Author: ParthGupta84616 <parthguptaji20@gmail.com>
+Date:   Sun Jan 26 23:59:19 2025 +0530
+
+    Setup
+
+[33mcommit 1b50b34e0e842d91eb6a8974a19d9f693ab80952[m
+Author: ParthGupta84616 <parthguptaji20@gmail.com>
+Date:   Sun Jan 26 23:42:22 2025 +0530
+
+    Initialize project using Create React App

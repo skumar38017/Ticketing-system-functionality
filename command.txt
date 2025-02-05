@@ -1,0 +1,181 @@
+
+ssh -i "Neon-Stdio-Holi-T25.pem" ubuntu@ec2-44-220-160-232.compute-1.amazonaws.com
+
+export PYTHONPATH=/home/tagglab/Videos/Neon-Stdio-Holi-T25
+----------------------------------------celery.txt------------------------------------------------------------------------------------------------------------------------
+    celery -A app.workers.celery_app.celery worker --loglevel=info
+    celery -A app.workers.celery_app worker --loglevel=info --concurrency=4
+    celery -A app.workers.celery_app flower --port=5555
+celery -A app.workers.celery_app.celery_app worker --loglevel=info --queues=otp_queue
+
+celery -A app.workers.celery_app worker --loglevel=info -Q otp_queue -n worker1 -E
+
+
+----------------------------------------migrations.txt------------------------------------------------------------------------------------------------------------------------
+
+Initialize Alembic: To initialize Alembic and set up the migration folder, run:
+alembic init alembic
+
+Create a new migration: To create a new migration file, run:
+alembic revision --autogenerate -m "Description of changes"
+
+Apply migrations: To apply all migrations, run:
+alembic upgrade head
+
+Rollback migrations: To rollback the last migration, run:
+alembic downgrade -1
+
+Drop migrations: To drop all migrations, run:
+alembic downgrade base
+
+----------------------------------------RabbitMQ User----------------------------------------
+# --> in container terminal
+
+docker exec -it rabbitmq rabbitmqctl add_user holi-t25 holi-t25  
+docker exec -it rabbitmq rabbitmqctl set_permissions -p / holi-t25 ".*" ".*" ".*"
+docker exec -it rabbitmq rabbitmqctl set_user_tags holi-t25 administrator
+
+docker exec -it rabbitmq rabbitmq-plugins enable rabbitmq_management rabbitmq_management rabbitmq_federation rabbitmq_federation_management rabbitmq_shovel rabbitmq_shovel_management
+
+
+----------------------------------------Run Containers----------------------------------------
+# docker-compose 
+
+docker-compose up -d
+docker-compose down
+docker-compose up -d --build
+docker-compose up -d --build --no-cache
+docker-compose --env-file .docker.env up --build --no-cache -d
+
+
+docker-compose --env-file .docker.env down
+docker-compose --env-file .docker.env up -d  
+docker restart $(docker ps -aq)
+
+
+----------------------------------------Logs----------------------------------------
+docker logs rabbitmq
+
+----------------------------------------Delete Containers----------------------------------------
+docker stop $(docker ps -aq)
+docker rm $(docker ps -aq)
+docker rmi -f $(docker images -aq)
+docker system prune -a
+
+
+---------------------------------------RabbitMQ on local Machine-----------------------------------------
+--> rabbitmq.txt
+
+# Start RabbitMQ
+sudo systemctl start rabbitmq-server
+
+# Stop RabbitMQ
+sudo systemctl stop rabbitmq-server
+
+# Restart RabbitMQ
+sudo systemctl restart rabbitmq-server
+
+# Check RabbitMQ status
+sudo systemctl status rabbitmq-server
+
+# Enable RabbitMQ management plugin
+sudo rabbitmq-plugins enable rabbitmq_management
+
+# Start RabbitMQ management plugin
+sudo systemctl start rabbitmq-server
+
+# Stop RabbitMQ management plugin
+sudo systemctl stop rabbitmq-server
+
+# Restart RabbitMQ management plugin
+sudo systemctl restart rabbitmq-server
+
+# Check RabbitMQ management plugin status    
+sudo systemctl status rabbitmq-server   
+
+
+--------------------------------------PostgreSQL Sumit-------------------------------
+sudo usermod -aG docker $USER
+sudo chmod 777 /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
+sudo chmod -R u+rw /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
+sudo chmod -R 755 /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
+export PYTHONPATH=$PYTHONPATH:${pwd}
+
+
+----------------------------------------PostgreSQL ubuntu-------------------------------------
+sudo chmod -R 755 /home/ubuntu/Neon-Stdio-Holi-T25/postgres_data
+export PYTHONPATH=$PYTHONPATH:/home/ubuntu/Neon-Stdio-Holi-T25/app
+sudo usermod -aG docker $USER
+sudo chmod -R u+rw /home/ubuntu/Neon-Stdio-Holi-T25/postgres_data
+sudo chmod 777 /home/ubuntu/Neon-Stdio-Holi-T25/postgres_data
+export PYTHONPATH=$PYTHONPATH:/home/ubuntu/Neon-Stdio-Holi-T25/app
+psql -h localhost -U postgres -d postgres
+
+
+----------------------------------------omkar-------------------------------------
+sudo chmod -R 755 /home/omkar/Desktop/Neon-Stdio-Holi-T25/postgres_data
+sudo chmod -R 755 /home/omkar/Desktop/Neon-Stdio-Holi-T25/redis_data
+export PYTHONPATH=$PYTHONPATH:/home/omkar/Desktop/Neon-Stdio-Holi-T25/app
+-------------------------------------------------redis-------------------------------
+redis-cli -h redis -p 6379 ping
+redis-cli 
+KEYS *
+SCAN 0
+
+-------------------------------------------------fastapi-------------------------------
+
+uvicorn main:app --host 0.0.0.0 --port 8000
+uvicorn app.main:app --reload
+
+
+-----------------
+newgrp docker
+
+
+--------------------------------
+https://websocketking.com/
+
+
+------------------------------------------------Celery-------------------------------
+docker exec -it celery-container bash
+celery -A app.workers.celery_app shell
+
+ # Start the Celery worker with the -E flag to enable task monitoring:
+celery -A app.workers.celery_app worker --loglevel=info --events
+celery -A app.workers.celery_app inspect registered
+
+
+celery -A app.workers.celery_app worker --loglevel=info -Q otp_queue
+celery -A app.workers.celery_app worker --loglevel=info -Q payment_queue
+celery -A app.workers.celery_app worker --loglevel=info -Q qr_queue
+celery -A app.workers.celery_app worker --loglevel=info -Q email_queue
+celery -A app.workers.celery_app worker --loglevel=info -Q otp_queue -n otp_worker
+celery -A app.workers.celery_app worker --loglevel=info -Q payment_queue -n payment_worker
+celery -A app.workers.celery_app worker --loglevel=info -Q qr_queue -n qr_worker        
+
+
+    celery -A app.workers.celery_app.celery_app worker --loglevel=info
+    celery -A app.workers.celery_app.celery_app worker --loglevel=info --concurrency=4
+    celery -A app.workers.celery_app.celery_app flower --port=5555
+
+celery -A app.workers.celery_app.celery_app worker --loglevel=info --queues=otp_queue
+celery -A app.workers.celery_app.celery_app worker --loglevel=info
+celery -A app.workers.celery_app.celery_app flower --port=5555
+celery -A app.workers.celery_app.celery_app worker --loglevel=info --concurrency=4
+celery -A app.workers.celery_app.celery_app worker --loglevel=info --concurrency=4 --queues=otp_queue   
+
+celery -A app.workers.celery_app status
+celery -A app.workers.celery_app inspect active
+
+
+docker inspect --format='{{json .State.Health}}' celery-container
+
+
+-------------------------------------------SNS----------------------------------------
+Account: 607702079586
+KMS key ARN - arn:aws:kms:ap-south-1:607702079586:key/b42b1032-ba55-421d-8718-fea4fb77b9b6
+
+IAM role for successful deliveries
+arn:aws:iam::607702079586:role/SNSSuccessFeedback
+IAM role for failed deliveries
+arn:aws:iam::607702079586:role/SNSFailureFeedback

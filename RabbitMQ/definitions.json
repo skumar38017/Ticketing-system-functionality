@@ -1,0 +1,31 @@
+{
+    "users": [
+      {
+        "name": "guest",
+        "password_hash": "guest",
+        "tags": "administrator"
+      },
+      {
+        "name": "holi-t25",
+        "password": "holi-t25",
+        "tags": "administrator"
+      }
+    ],
+    "permissions": [
+      {
+        "user": "guest",
+        "vhost": "/",
+        "configure": ".*",
+        "write": ".*",
+        "read": ".*"
+      },
+      {
+        "user": "holi-t25",
+        "vhost": "/",
+        "configure": ".*",
+        "write": ".*",
+        "read": ".*"
+      }
+    ]
+  }
+  

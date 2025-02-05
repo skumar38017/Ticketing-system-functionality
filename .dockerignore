@@ -1,17 +1,14 @@
+#  Neon-Stdio-Holi-T25/.dockerignore
+
+# Created by https://www.toptal.com/developers/gitignore/api/flask,django,cuda
+# Edit at https://www.toptal.com/developers/gitignore?templates=flask,django,cuda
+
 #  Neon-Stdio-Holi-T25/.gitignore
 
 # Created by https://www.toptal.com/developers/gitignore/api/flask,django,cuda
 # Edit at https://www.toptal.com/developers/gitignore?templates=flask,django,cuda
 
 # docker-compose
-rabbitmq_data
-postgres_data
-redis_data
-nocodb_data
-.docker.env
-
-__pycache__
-
 
 #  Fastapi
 *.holi-t25

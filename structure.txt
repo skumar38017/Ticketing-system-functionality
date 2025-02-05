@@ -1,0 +1,66 @@
+ticket_management_system/
+├── app/
+│   ├── __init__.py
+│   ├── main.py                  # FastAPI entry point
+│   ├── config.py                # Configuration (environment variables, Redis, RabbitMQ, etc.)
+│   ├── database/                # Database-related files
+│   │   ├── __init__.py
+│   │   ├── redis_client.py      # Redis connection setup
+│   │   ├── database.py          # Database connection setup
+│   │   ├── models.py            # SQLAlchemy models (user record, payment record)
+|   |-- schemas/                  # Schemas for API requests and responses
+|   |   ├── __init__.py
+│   │   ├── schemas.py       # Schemas for user-related operations
+|   |   ├── webhook_schema.py     # Schemas for webhook-related operations
+|   |-- interfaces/                # Interfaces for user-related operations
+│   │   ├── __init__.py 
+|   |   ├── interfaces.py  # User-related operations interface
+│   │   ├── webhook_interface.py  # Webhook-related operations interface
+|   |-- curd_operation
+|   |   ├── __init__.py
+|   |   ├── user_curd.py       # User-related operations
+|   |   ├── payment_curd.py   # Payment-related operations
+|   |   ├── qr_code_curd.py   # QR code-related operations
+│   ├── tasks/                   # Celery tasks
+│   │   ├── __init__.py
+│   │   ├── otp_task.py          # Task to send OTP
+│   │   ├── payment_task.py      # Payment processing task
+│   │   ├── qr_task.py           # QR code generation task
+│   ├── routes/                  # API routes
+│   │   ├── __init__.py
+│   │   ├── user_routes.py       # Routes for ticket booking, OTP verification, etc.
+│   │   ├── webhook_routes.py    # Webhook endpoint
+│   │   ├── websocket_routes.py  # WebSocket endpoint
+│   ├── services/                # Business logic
+│   │   ├── __init__.py
+│   │   ├── otp_service.py       # OTP generation and verification logic
+│   │   ├── payment_service.py   # Payment processing logic (Razorpay integration)
+│   │   ├── qr_service.py        # QR code generation logic
+│   │   ├── sms_service.py       # SMS sending logic
+|   |   |-- websocket_service.py  # WebSocket handling logic
+│   ├── utils/                   # Utility/helper functions
+│   │   ├── __init__.py
+│   │   ├── generate_otp.py      # OTP generation helper
+│   │   ├── qr_generator.py      # QR code generation helper
+|   |   ├── email_utils.py       # Email sending utility
+|   |   |-- generate_payment_receipt.py  # Generate payment receipt
+│   ├── workers/                 # Celery worker setup
+│   │   ├── __init__.py
+│   │   ├── celery_app.py        # Celery app setup
+│   ├── middleware/              # Middleware for handling session data
+│   │   ├── __init__.py
+│   │   ├── session_middleware.py  # Session middleware for handling session data
+|   |   ├── cors_middleware.py  # CORS middleware for handling CORS requests
+|   |-- RabbitMQ                  # RabbitMQ setup
+|   |   ├── Dockerfile
+|   |   ├── docker-compose.yml
+|   |   ├── rabbitmq.conf
+|   |   ├── rabbitmq.env
+|   |   ├── rabbitmq.env.example
+|   |   └── rabbitmq.sh
+├── requirements.txt             # Python dependencies
+├── .env                         # Environment variables
+├── Dockerfile                   # Dockerfile for containerization
+├── docker-compose.yml           # Docker Compose file for Redis, RabbitMQ, and the FastAPI app
+└── README.md                    # Project documentation
+

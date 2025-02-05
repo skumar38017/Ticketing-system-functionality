@@ -1,0 +1,7 @@
+install globally npm
+
+npm sudo npm i -g yarn 
+
+install in folder
+yarn install 
+

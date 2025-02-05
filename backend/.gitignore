@@ -9,6 +9,8 @@ postgres_data
 redis_data
 nocodb_data
 .docker.env
+common.cert
+Neon-Stdio-Holi-T25.pem
 
 __pycache__
 

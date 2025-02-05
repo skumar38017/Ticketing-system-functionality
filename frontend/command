@@ -1,3 +1,4 @@
+
 install globally npm
 
 npm sudo npm i -g yarn 
@@ -8,3 +9,21 @@ yarn install
 
 scp
  sudo scp -i "Neon-Stdio-Holi-T25.pem" -r /home/tagglab/Videos/Neon-Stdio-Holi-T25/frontend/neon-studioz/build ubuntu@ec2-44-197-116-32.compute-1.amazonaws.com:/home/ubuntu
+
+
+
+sudo chown -R www-data:www-data /home/ubuntu/build
+sudo chmod -R 755 /home/ubuntu/build
+
+1. 
+sudo mkdir -p /var/www/Stdio-Holi-T25-frontend
+sudo cp -r /home/ubuntu/build/* /var/www/Stdio-Holi-T25-frontend/
+
+sudo chown -R www-data:www-data /var/www/Stdio-Holi-T25-frontend
+sudo chmod -R 755 /var/www/Stdio-Holi-T25-frontend
+
+sudo apt install certbot python3-certbot-nginx
+sudo certbot --nginx
+
+dig www.neonstudioz.in
+rikshitconstructions@gmail.com

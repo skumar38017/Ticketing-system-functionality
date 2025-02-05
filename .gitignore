@@ -1,0 +1,23 @@
+#  Neon-Stdio-Holi-T25
+.DS_Store
+.idea
+*.pyc
+__pycache__
+.vscode
+.env
+env
+*.db
+*.sqlite3
+*.sqlite
+celerybeat-schedule
+celerybeat.pid   
+.holi-t25   
+.env
+
+
+.docker.env
+nocodb_data
+postgres_data
+redis_data
+rabbitmq_data
+celerybeat-schedule

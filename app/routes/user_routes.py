@@ -113,7 +113,7 @@ class UserRoutes:
             return JSONResponse(
                 content={
                     "message": "OTP sent and user data stored temporarily in Redis.",
-                    "redis_key": redis_key,
+                    "{phone_no}": redis_key,
                     "task_id": task_id,
                 },
                 headers={"Set-Cookie": f"session_id={session_id}; HttpOnly"},

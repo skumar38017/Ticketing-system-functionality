@@ -11,6 +11,7 @@ class WebSocketHandler:
         self.logger = logging.getLogger("uvicorn.error")
         self.subscriptions: Dict[str, List[WebSocket]] = {}  # Map of phone_no to list of WebSocket connections
 
+    #  Connect and disconnect methods
     async def connect(self, websocket: WebSocket):
         """
         Handles a new WebSocket connection.
@@ -19,6 +20,7 @@ class WebSocketHandler:
         self.active_connections.append(websocket)
         self.logger.info(f"New WebSocket connection: {websocket.client}")
 
+    # self.send_message(websocket, "Welcome to the WebSocket server!")
     async def disconnect(self, websocket: WebSocket):
         """
         Disconnect a WebSocket connection and clean up subscriptions.
@@ -33,6 +35,7 @@ class WebSocketHandler:
                 websockets.remove(websocket)
                 self.logger.info(f"WebSocket unsubscribed from {phone_no}")
 
+    #  Send message methods
     async def send_message(self, websocket: WebSocket, message:  str = "Default message"):
         """
         Send a message to a specific WebSocket connection.

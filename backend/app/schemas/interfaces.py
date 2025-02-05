@@ -13,6 +13,12 @@ class UserInterface(BaseModel):
     created_at: str
     updated_at: str
 
+class VerifyOTPResponseInterface(BaseModel):
+    success: bool
+    message: str
+    otp_status: str
+    session_id: str
+
 class PaymentInterface(BaseModel):
     uuid: str
     user_uuid: str

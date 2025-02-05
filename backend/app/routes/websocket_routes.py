@@ -21,19 +21,23 @@ async def websocket_general_endpoint(websocket: WebSocket):
         await ws_handler.disconnect(websocket)
 
 #  
-@router.websocket("/ws/ack_otp")
-async def websocket_otp_ack_endpoint(websocket: WebSocket):
+@router.websocket("/ws/otp_status")
+async def websocket_otp_status_endpoint(websocket: WebSocket):
     """
-    WebSocket endpoint to handle OTP acknowledgment.
+    WebSocket endpoint to send OTP status updates.
+    This endpoint listens for OTP task-related requests and sends updates.
     """
     await ws_handler.connect(websocket)
     try:
         while True:
             data = await websocket.receive_text()
-            if data.startswith("ack_otp:"):
-                otp_received = data.split(":")[1]
-                print(f"OTP {otp_received} acknowledged by client.")
-                await ws_handler.send_message(websocket, f"OTP {otp_received} acknowledged.")
+            if data.startswith("subscribe:"):
+                phone_no = data.split(":")[1]
+                print(f"Client subscribed to OTP status updates for phone: {phone_no}")
+                await ws_handler.subscribe(phone_no, websocket)
+                await ws_handler.send_message(websocket, f"Subscribed to OTP updates for {phone_no}.")
+            elif data == "ping":
+                await websocket.send_text("pong")
             else:
                 await ws_handler.send_message(websocket, "Unhandled message format.")
     except WebSocketDisconnect:

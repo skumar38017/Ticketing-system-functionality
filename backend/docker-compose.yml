@@ -185,6 +185,7 @@ services:
       dockerfile: ./Dockerfile.WorkerCelery
       args:
         RABBITMQ_URL: ${RABBITMQ_URL}
+        REDIS_URL: ${REDIS_URL}
     container_name: otp_worker
     command: celery -A app.workers.celery_app worker -Q otp_queue -c 2 --loglevel=info -E --hostname otp_worker@%h
     env_file:
@@ -220,6 +221,7 @@ services:
       dockerfile: ./Dockerfile.WorkerCelery
       args:
         RABBITMQ_URL: ${RABBITMQ_URL}
+        REDIS_URL: ${REDIS_URL}
     container_name: payment_worker
     command: celery -A app.workers.celery_app worker -Q payment_queue -c 2 --loglevel=info -E --hostname payment_worker@%h
     env_file:
@@ -255,6 +257,7 @@ services:
       dockerfile: ./Dockerfile.WorkerCelery
       args:
         RABBITMQ_URL: ${RABBITMQ_URL}
+        REDIS_URL: ${REDIS_URL}
     container_name: qr_worker
     command: celery -A app.workers.celery_app worker -Q qr_queue -c 2 --loglevel=info -E --hostname qr_worker@%h
     env_file:
@@ -290,6 +293,7 @@ services:
       dockerfile: ./Dockerfile.WorkerCelery
       args:
         RABBITMQ_URL: ${RABBITMQ_URL}
+        REDIS_URL: ${REDIS_URL}
     container_name: email_worker
     command: celery -A app.workers.celery_app worker -Q email_queue -c 2 --loglevel=info -E --hostname email_worker@%h
     env_file:

@@ -51,14 +51,14 @@ async def login_to_database():
         async with engine.connect() as connection:
             # Simply open and close the connection to check if it's working
             logger.info("Successfully connected to the database.")
-            print("Successfully connected to the database.")
+            print(f"Successfully connected to the async database.{config.async_database_url}")
+            print(f"Successfully connected to the sync database.{config.database_url}")
     except OperationalError as e:
         logger.error(f"Database connection failed: {e}")
         print(f"Database connection failed: {e}")
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
         print(f"Unexpected error: {e}")
-
 
 # Run the login function asynchronously
 async def main():

@@ -5,3 +5,6 @@ npm sudo npm i -g yarn
 install in folder
 yarn install 
 
+
+scp
+ sudo scp -i "Neon-Stdio-Holi-T25.pem" -r /home/tagglab/Videos/Neon-Stdio-Holi-T25/frontend/neon-studioz/build ubuntu@ec2-44-197-116-32.compute-1.amazonaws.com:/home/ubuntu

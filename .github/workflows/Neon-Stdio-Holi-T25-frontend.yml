@@ -41,25 +41,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout only the `frontend` directory
-      - name: Checkout frontend folder
+      # Checkout only the `frontend` folder using sparse-checkout
+      - name: Checkout Neon-Studio-Holi-T25/frontend folder
         uses: actions/checkout@v4
         with:
-          # Fetch only the `frontend` directory
-          path: Neon-Stdio-Holi-T25/frontend
-          # Ensure only the `frontend` folder gets checked out
           ref: ${{ github.ref }}
-
-      - name: Print checkout list
+          
+      - name: Enable sparse-checkout
         run: |
-          echo "Checked out code in directory: $(pwd)"
-          echo "List of checked out files: $(ls -a)"
-          tree 
+          git sparse-checkout init --cone
+          git sparse-checkout set Neon-Stdio-Holi-T25/frontend
+
+      - name: Verify Sparse Checkout
+        run: |
+          echo "Checked out directory: $(pwd)"
+          echo "List of checked-out files: $(ls -a)"
+          ls -R Neon-Stdio-Holi-T25/frontend
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22.x'
+          node-version: '20.x'
 
       - name: Print Node.js version
         run: |
@@ -74,13 +76,13 @@ jobs:
       # Cache the npm/yarn dependencies
       - name: Cache npm and yarn dependencies
         id: cache-npm-yarn
-        uses: actions/cache@v4
+        uses: actions/cache@v3
         with:
           path: |
             ~/.npm
             ~/.yarn-cache
-            frontend/node_modules  # Cache node_modules inside `frontend` folder
-          key: ${{ runner.os }}-node-${{ hashFiles('**/frontend/package-lock.json', '**/frontend/yarn.lock') }}-${{ hashFiles('**/frontend/neon-studioz/package.json') }}
+            Neon-Stdio-Holi-T25/frontend/node_modules  # Cache node_modules inside `frontend` folder
+          key: ${{ runner.os }}-node-${{ hashFiles('**/Neon-Stdio-Holi-T25/frontend/package-lock.json', '**/Neon-Stdio-Holi-T25/frontend/yarn.lock') }}-${{ hashFiles('**/Neon-Stdio-Holi-T25/frontend/neon-studioz/package.json') }}
           restore-keys: |
             ${{ runner.os }}-node- 
 
@@ -91,33 +93,33 @@ jobs:
             echo "Cache hit! The following cache paths were restored:"
             echo "- ~/.npm"
             echo "- ~/.yarn-cache"
-            echo "- frontend/node_modules"
+            echo "- Neon-Stdio-Holi-T25/frontend/node_modules"
           else
             echo "Cache miss! A new cache will be created with the following paths:"
             echo "- ~/.npm"
             echo "- ~/.yarn-cache"
-            echo "- frontend/node_modules"
+            echo "- Neon-Stdio-Holi-T25/frontend/node_modules"
           fi
 
       - name: Install dependencies in frontend/neon-studioz
         run: |
-            cd frontend/neon-studioz
+            cd Neon-Stdio-Holi-T25/frontend/neon-studioz
             yarn install
             echo "Installed globally yarn: $(yarn --version)"
-            echo "Installed dependencies in folder: ./frontend/neon-studioz"
+            echo "Installed dependencies in folder: ./Neon-Stdio-Holi-T25/frontend/neon-studioz"
             echo "Installed list of dependencies: $(yarn list --depth 0)"
             yarn list --depth 0
-        working-directory: frontend/neon-studioz
+        working-directory: Neon-Stdio-Holi-T25/frontend/neon-studioz
 
       # Ensure cache is updated after installing dependencies
       - name: Update Cache After Installation
-        uses: actions/cache@v4
+        uses: actions/cache@v3
         with:
           path: |
             ~/.npm
             ~/.yarn-cache
-            frontend/node_modules  # Cache node_modules inside `frontend` folder
-          key: ${{ runner.os }}-node-${{ hashFiles('**/frontend/package-lock.json', '**/frontend/yarn.lock') }}-${{ hashFiles('**/frontend/neon-studioz/package.json') }}
+            Neon-Stdio-Holi-T25/frontend/node_modules  # Cache node_modules inside `frontend` folder
+          key: ${{ runner.os }}-node-${{ hashFiles('**/Neon-Stdio-Holi-T25/frontend/package-lock.json', '**/Neon-Stdio-Holi-T25/frontend/yarn.lock') }}-${{ hashFiles('**/Neon-Stdio-Holi-T25/frontend/neon-studioz/package.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
 

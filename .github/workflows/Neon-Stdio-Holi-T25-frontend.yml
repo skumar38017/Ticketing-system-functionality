@@ -106,7 +106,7 @@ jobs:
 
       - name: Install dependencies in frontend/neon-studioz
         run: |
-            cd ./frontend/neon-studioz
+            cd frontend/neon-studioz
             yarn install
             echo "Installed globally yarn: $(yarn --version)"
             echo "Installed dependencies in folder: ./Neon-Stdio-Holi-T25/frontend/neon-studioz"

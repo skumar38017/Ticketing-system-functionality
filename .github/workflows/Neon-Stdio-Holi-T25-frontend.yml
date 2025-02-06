@@ -9,7 +9,6 @@
 #
 #   SPDX-License-Identifier: MPL-2.0
 
-
 name: Neon-Stdio-Holi-T25-frontend CI
 
 on:
@@ -82,10 +81,9 @@ jobs:
             ~/.npm
             ~/.yarn-cache
             Neon-Stdio-Holi-T25/frontend/node_modules  # Cache node_modules inside `frontend` folder
-          key: ${{ runner.os }}-node-${{ hashFiles('**/Neon-Stdio-Holi-T25/frontend/package-lock.json', '**/Neon-Stdio-Holi-T25/frontend/yarn.lock') }}-${{ hashFiles('**/Neon-Stdio-Holi-T25/frontend/neon-studioz/package.json') }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/Neon-Stdio-Holi-T25/frontend/package-lock.json', '**/Neon-Stdio-Holi-T25/frontend/yarn.lock', '**/Neon-Stdio-Holi-T25/frontend/neon-studioz/package.json') }}
           restore-keys: |
             ${{ runner.os }}-node- 
-            tree
 
       - name: Show Cache Details
         run: |
@@ -95,13 +93,11 @@ jobs:
             echo "- ~/.npm"
             echo "- ~/.yarn-cache"
             echo "- ~/frontend/node_modules"
-            tree
           else
             echo "Cache miss! A new cache will be created with the following paths:"
             echo "- ~/.npm"
             echo "- ~/.yarn-cache"
             echo "- ~/frontend/node_modules"
-            tree
           fi
 
       - name: Install dependencies in frontend/neon-studioz
@@ -121,7 +117,7 @@ jobs:
             ~/.npm
             ~/.yarn-cache
             Neon-Stdio-Holi-T25/frontend/node_modules  # Cache node_modules inside `frontend` folder
-          key: ${{ runner.os }}-node-${{ hashFiles('**/Neon-Stdio-Holi-T25/frontend/package-lock.json', '**/Neon-Stdio-Holi-T25/frontend/yarn.lock') }}-${{ hashFiles('**/Neon-Stdio-Holi-T25/frontend/neon-studioz/package.json') }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/Neon-Stdio-Holi-T25/frontend/package-lock.json', '**/Neon-Stdio-Holi-T25/frontend/yarn.lock', '**/Neon-Stdio-Holi-T25/frontend/neon-studioz/package.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
 

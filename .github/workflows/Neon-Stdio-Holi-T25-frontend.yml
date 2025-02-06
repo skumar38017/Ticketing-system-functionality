@@ -1,0 +1,117 @@
+#  Copyright (c) 2022 Robert Bosch Manufacturing Solutions GmbH
+#
+#  See the AUTHORS file(s) distributed with this work for additional
+#  information regarding authorship.
+#
+#  This Source Code Form is subject to the terms of the Mozilla Public
+#  License, v. 2.0. If a copy of the MPL was not distributed with this
+#  file, You can obtain one at https://mozilla.org/MPL/2.0/.
+#
+#   SPDX-License-Identifier: MPL-2.0
+
+name: Neon-Stdio-Holi-T25-frontend CI
+
+on:
+  push:
+    branches:
+      - github-action-workflow
+      - master
+    paths:
+     - '.github/workflows/**' 
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Frontend CI environment (staging or production)"
+        required: true
+        type: choice
+        default: github-action-workflow
+        options:
+          - github-action-workflow
+          - master
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Print checkout list
+        run: |
+          echo "Checked out code in directory: $(pwd)"
+          echo "List of checked out files: $(ls -a)"
+          tree 
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+
+      - name: Print Node.js version
+        run: |
+          echo "Node.js version: $(node --version)"
+          echo "Installed Node.js version: $(npm --version)"
+
+      - name: Install globally npm
+        run: |
+            npm i -g yarn
+            echo "Installed globally npm: $(npm --version)"
+            
+      # Cache the npm/yarn dependencies
+      - name: Cache npm and yarn dependencies
+        id: cache-npm-yarn
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.npm
+            ~/.yarn-cache
+            node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}-${{ hashFiles('**/frontend/neon-studioz/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node- 
+
+      - name: Show Cache Details
+        run: |
+          echo "Cache key used: ${{ steps.cache-npm-yarn.outputs.cache-hit }}"
+          if [ "${{ steps.cache-npm-yarn.outputs.cache-hit }}" == 'true' ]; then
+            echo "Cache hit! The following cache paths were restored:"
+            echo "- ~/.npm"
+            echo "- ~/.yarn-cache"
+            echo "- node_modules"
+          else
+            echo "Cache miss! A new cache will be created with the following paths:"
+            echo "- ~/.npm"
+            echo "- ~/.yarn-cache"
+            echo "- node_modules"
+          fi
+
+      - name: Install dependencies in frontend/neon-studioz
+        run: |
+            cd frontend/neon-studioz
+            yarn install
+            echo "Installed globally yarn: $(yarn --version)"
+            echo "Installed dependencies in folder: ./frontend/neon-studioz"
+            echo "Installed list of dependencies: $(yarn list --depth 0)"
+            yarn list --depth 0
+        working-directory: ./frontend/neon-studioz
+
+      # Ensure cache is updated after installing dependencies
+      - name: Update Cache After Installation
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.npm
+            ~/.yarn-cache
+            node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}-${{ hashFiles('**/frontend/neon-studioz/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Set timestamp
+        id: set-timestamp
+        run: echo "timestamp=$(date '+%Y-%m-%d-%H-%M-%S')" >> $GITHUB_ENV

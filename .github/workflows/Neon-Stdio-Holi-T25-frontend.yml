@@ -50,7 +50,7 @@ jobs:
       - name: Enable sparse-checkout
         run: |
           git sparse-checkout init --cone
-          git sparse-checkout set Neon-Stdio-Holi-T25/frontend
+          git sparse-checkout set frontend
 
       - name: Verify Sparse Checkout
         run: |

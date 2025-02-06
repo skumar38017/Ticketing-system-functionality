@@ -76,7 +76,7 @@ jobs:
       # Cache the npm/yarn dependencies
       - name: Cache npm and yarn dependencies
         id: cache-npm-yarn
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.npm
@@ -85,6 +85,7 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('**/Neon-Stdio-Holi-T25/frontend/package-lock.json', '**/Neon-Stdio-Holi-T25/frontend/yarn.lock') }}-${{ hashFiles('**/Neon-Stdio-Holi-T25/frontend/neon-studioz/package.json') }}
           restore-keys: |
             ${{ runner.os }}-node- 
+            tree
 
       - name: Show Cache Details
         run: |
@@ -94,16 +95,18 @@ jobs:
             echo "- ~/.npm"
             echo "- ~/.yarn-cache"
             echo "- Neon-Stdio-Holi-T25/frontend/node_modules"
+            tree
           else
             echo "Cache miss! A new cache will be created with the following paths:"
             echo "- ~/.npm"
             echo "- ~/.yarn-cache"
             echo "- Neon-Stdio-Holi-T25/frontend/node_modules"
+            tree
           fi
 
       - name: Install dependencies in frontend/neon-studioz
         run: |
-            cd Neon-Stdio-Holi-T25/frontend/neon-studioz
+            cd ${pwd}frontend/neon-studioz
             yarn install
             echo "Installed globally yarn: $(yarn --version)"
             echo "Installed dependencies in folder: ./Neon-Stdio-Holi-T25/frontend/neon-studioz"

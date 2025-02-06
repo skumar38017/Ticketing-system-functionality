@@ -9,6 +9,7 @@
 #
 #   SPDX-License-Identifier: MPL-2.0
 
+
 name: Neon-Stdio-Holi-T25-frontend CI
 
 on:
@@ -45,7 +46,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           # Fetch only the `frontend` directory
-          path: frontend
+          path: Neon-Stdio-Holi-T25/frontend
           # Ensure only the `frontend` folder gets checked out
           ref: ${{ github.ref }}
 

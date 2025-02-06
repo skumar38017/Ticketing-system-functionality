@@ -56,7 +56,7 @@ jobs:
         run: |
           echo "Checked out directory: $(pwd)"
           echo "List of checked-out files: $(ls -a)"
-          ls -R ${pwd}
+          tree
 
       - name: Set up Node.js
         uses: actions/setup-node@v4

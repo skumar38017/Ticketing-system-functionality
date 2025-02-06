@@ -16,9 +16,10 @@ on:
     branches:
       - github-action-workflow
       - master
-      - holi-t25-1.1.2  # Trigger workflow on `holi-t25-1.1.2`
+      - holi-t25-1.1.2
     paths:
      - '.github/workflows/**' 
+     - 'frontend/**'  # Listen to changes in frontend files as well
   workflow_dispatch:
     inputs:
       environment:
@@ -29,7 +30,7 @@ on:
         options:
           - github-action-workflow
           - master
-          - holi-t25-1.1.2  # Optionally, you can add `holi-t25-1.1.2` here if needed
+          - holi-t25-1.1.2
 
 permissions:
   contents: read
@@ -72,6 +73,26 @@ jobs:
             npm i -g yarn
             echo "Installed globally npm: $(npm --version)"
             
+      # Check if CACHE_KEY is already defined
+      - name: Check if CACHE_KEY exists and calculate it if necessary
+        id: check-cache-key
+        run: |
+          # Check if CACHE_KEY already exists
+          if [[ -z "${{ env.CACHE_KEY }}" ]]; then
+            echo "CACHE_KEY is not defined. Calculating new cache key..."
+            # Calculate the hash of all files in the frontend directory
+            ALL_FILES_HASH=$(find frontend/ -type f -exec sha256sum {} \; | sha256sum | awk '{ print $1 }')
+            
+            # Generate a unique cache key
+            CACHE_KEY="frontend-node-${ALL_FILES_HASH}"
+            
+            # Make the CACHE_KEY available for later steps using GITHUB_ENV
+            echo "CACHE_KEY=$CACHE_KEY" >> $GITHUB_ENV
+            echo "New CACHE_KEY generated: $CACHE_KEY"
+          else
+            echo "CACHE_KEY already exists: ${{ env.CACHE_KEY }}"
+          fi
+
       # Cache the npm/yarn dependencies
       - name: Cache npm and yarn dependencies
         id: cache-npm-yarn
@@ -81,12 +102,13 @@ jobs:
             ~/.npm
             ~/.yarn-cache
             Neon-Stdio-Holi-T25/frontend/node_modules  # Cache node_modules inside `frontend` folder
-          key: ${{ runner.os }}-node-${{ hashFiles('**/Neon-Stdio-Holi-T25/frontend/package-lock.json', '**/Neon-Stdio-Holi-T25/frontend/yarn.lock', '**/Neon-Stdio-Holi-T25/frontend/neon-studioz/package.json') }}
+          key: ${{ env.CACHE_KEY }}  # Use the CACHE_KEY set earlier
           restore-keys: |
-            ${{ runner.os }}-node- 
+            ${{ runner.os }}-node-
 
-      - name: Show Cache Details
+      - name: Show Cache Details Before Restore
         run: |
+          echo "Cache key before restore: ${{ env.CACHE_KEY }}"
           echo "Cache key used: ${{ steps.cache-npm-yarn.outputs.cache-hit }}"
           if [ "${{ steps.cache-npm-yarn.outputs.cache-hit }}" == 'true' ]; then
             echo "Cache hit! The following cache paths were restored:"
@@ -116,10 +138,14 @@ jobs:
           path: |
             ~/.npm
             ~/.yarn-cache
-            Neon-Stdio-Holi-T25/frontend/node_modules  # Cache node_modules inside `frontend` folder
-          key: ${{ runner.os }}-node-${{ hashFiles('**/Neon-Stdio-Holi-T25/frontend/package-lock.json', '**/Neon-Stdio-Holi-T25/frontend/yarn.lock', '**/Neon-Stdio-Holi-T25/frontend/neon-studioz/package.json') }}
+            Neon-Studio-Holi-T25/frontend/node_modules  # Cache node_modules inside `frontend` folder
+          key: ${{ env.CACHE_KEY }}  # Use the CACHE_KEY set earlier
           restore-keys: |
             ${{ runner.os }}-node-
+
+      - name: Show Cache Details After Save
+        run: |
+          echo "Cache key after save: ${{ env.CACHE_KEY }}"
 
       - name: Set timestamp
         id: set-timestamp

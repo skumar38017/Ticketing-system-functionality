@@ -154,15 +154,17 @@ jobs:
 
       - name: build frontend
         run: |
-          echo "Starting build for branch: ${{ github.ref }} 
+          echo "Starting build for branch: ${{ github.ref }}"
           yarn build  # Running the build script defined in package.json
           
           # Optional: Display a list of installed dependencies if needed
           echo "Installed dependencies:"
           yarn list --depth 0  # This will list the top-level dependencies
+          
            # Optional: Output the build details, you can add custom build logs here
           echo "Build completed for branch: ${{ github.ref }} in mode: $BUILD_MODE"
         working-directory: frontend/neon-studioz
+
 
       - name: Set timestamp
         id: set-timestamp

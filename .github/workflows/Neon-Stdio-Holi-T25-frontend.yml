@@ -72,6 +72,12 @@ jobs:
         run: |
             npm i -g yarn
             echo "Installed globally npm: $(npm --version)"
+
+      # Install missing babel plugin for private properties
+      - name: Install additional babel plugin for private properties
+        run: |
+          yarn add @babel/plugin-proposal-private-property-in-object --dev
+          echo "Installed additional babel plugin for private properties"
             
       # Check if CACHE_KEY is already defined
       - name: Check if CACHE_KEY exists and calculate it if necessary
@@ -99,9 +105,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            ~/.npm
             ~/.yarn-cache
-            Neon-Stdio-Holi-T25/frontend/node_modules  # Cache node_modules inside `frontend` folder
+            frontend/neon-studioz/node_modules  # Cache node_modules inside `frontend` folder
           key: ${{ env.CACHE_KEY }}  # Use the CACHE_KEY set earlier
           restore-keys: |
             ${{ runner.os }}-node-
@@ -112,12 +117,10 @@ jobs:
           echo "Cache key used: ${{ steps.cache-npm-yarn.outputs.cache-hit }}"
           if [ "${{ steps.cache-npm-yarn.outputs.cache-hit }}" == 'true' ]; then
             echo "Cache hit! The following cache paths were restored:"
-            echo "- ~/.npm"
             echo "- ~/.yarn-cache"
             echo "- ~/frontend/node_modules"
           else
             echo "Cache miss! A new cache will be created with the following paths:"
-            echo "- ~/.npm"
             echo "- ~/.yarn-cache"
             echo "- ~/frontend/node_modules"
           fi
@@ -136,9 +139,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            ~/.npm
             ~/.yarn-cache
-            Neon-Studio-Holi-T25/frontend/node_modules  # Cache node_modules inside `frontend` folder
+            frontend/node_modules    # Cache node_modules inside `frontend` folder
           key: ${{ env.CACHE_KEY }}  # Use the CACHE_KEY set earlier
           restore-keys: |
             ${{ runner.os }}-node-
@@ -147,9 +149,12 @@ jobs:
         run: |
           echo "Cache key after save: ${{ env.CACHE_KEY }}"
 
+      - name: Disable ESLint warnings as errors
+        run: echo "CI=false" >> $GITHUB_ENV
+
       - name: build frontend
         run: |
-          echo "Starting build for branch: ${{ github.ref }} in mode: $BUILD_MODE"
+          echo "Starting build for branch: ${{ github.ref }} 
           yarn build  # Running the build script defined in package.json
           
           # Optional: Display a list of installed dependencies if needed

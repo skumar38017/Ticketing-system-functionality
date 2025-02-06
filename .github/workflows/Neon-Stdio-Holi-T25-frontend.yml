@@ -94,13 +94,13 @@ jobs:
             echo "Cache hit! The following cache paths were restored:"
             echo "- ~/.npm"
             echo "- ~/.yarn-cache"
-            echo "- Neon-Stdio-Holi-T25/frontend/node_modules"
+            echo "- ~/frontend/node_modules"
             tree
           else
             echo "Cache miss! A new cache will be created with the following paths:"
             echo "- ~/.npm"
             echo "- ~/.yarn-cache"
-            echo "- Neon-Stdio-Holi-T25/frontend/node_modules"
+            echo "- ~/frontend/node_modules"
             tree
           fi
 
@@ -112,11 +112,11 @@ jobs:
             echo "Installed dependencies in folder: ./Neon-Stdio-Holi-T25/frontend/neon-studioz"
             echo "Installed list of dependencies: $(yarn list --depth 0)"
             yarn list --depth 0
-        working-directory: Neon-Stdio-Holi-T25/frontend/neon-studioz
+        working-directory: ${pwd}/frontend/neon-studioz
 
       # Ensure cache is updated after installing dependencies
       - name: Update Cache After Installation
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.npm

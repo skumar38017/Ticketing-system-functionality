@@ -56,7 +56,7 @@ jobs:
         run: |
           echo "Checked out directory: $(pwd)"
           echo "List of checked-out files: $(ls -a)"
-          ls -R Neon-Stdio-Holi-T25/frontend
+          ls -R ${pwd}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4

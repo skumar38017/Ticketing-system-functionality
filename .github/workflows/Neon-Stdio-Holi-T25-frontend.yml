@@ -15,8 +15,8 @@ on:
   push:
     branches:
       - github-action-workflow
-      - master          # production build
-      - holi-t25-1.1.2  # stagging build
+      - master
+      - holi-t25-1.1.2  # Trigger workflow on `holi-t25-1.1.2`
     paths:
      - '.github/workflows/**' 
   workflow_dispatch:
@@ -28,8 +28,8 @@ on:
         default: github-action-workflow
         options:
           - github-action-workflow
-          - master          # production build
-          - holi-t25-1.1.2  # stagging build
+          - master
+          - holi-t25-1.1.2  # Optionally, you can add `holi-t25-1.1.2` here if needed
 
 permissions:
   contents: read
@@ -40,8 +40,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      # Checkout only the `frontend` directory
+      - name: Checkout frontend folder
         uses: actions/checkout@v4
+        with:
+          # Fetch only the `frontend` directory
+          path: frontend
+          # Ensure only the `frontend` folder gets checked out
+          ref: ${{ github.ref }}
 
       - name: Print checkout list
         run: |
@@ -67,13 +73,13 @@ jobs:
       # Cache the npm/yarn dependencies
       - name: Cache npm and yarn dependencies
         id: cache-npm-yarn
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.npm
             ~/.yarn-cache
-            node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}-${{ hashFiles('**/frontend/neon-studioz/package.json') }}
+            frontend/node_modules  # Cache node_modules inside `frontend` folder
+          key: ${{ runner.os }}-node-${{ hashFiles('**/frontend/package-lock.json', '**/frontend/yarn.lock') }}-${{ hashFiles('**/frontend/neon-studioz/package.json') }}
           restore-keys: |
             ${{ runner.os }}-node- 
 
@@ -84,12 +90,12 @@ jobs:
             echo "Cache hit! The following cache paths were restored:"
             echo "- ~/.npm"
             echo "- ~/.yarn-cache"
-            echo "- node_modules"
+            echo "- frontend/node_modules"
           else
             echo "Cache miss! A new cache will be created with the following paths:"
             echo "- ~/.npm"
             echo "- ~/.yarn-cache"
-            echo "- node_modules"
+            echo "- frontend/node_modules"
           fi
 
       - name: Install dependencies in frontend/neon-studioz
@@ -100,17 +106,17 @@ jobs:
             echo "Installed dependencies in folder: ./frontend/neon-studioz"
             echo "Installed list of dependencies: $(yarn list --depth 0)"
             yarn list --depth 0
-        working-directory: ./frontend/neon-studioz
+        working-directory: frontend/neon-studioz
 
       # Ensure cache is updated after installing dependencies
       - name: Update Cache After Installation
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.npm
             ~/.yarn-cache
-            node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}-${{ hashFiles('**/frontend/neon-studioz/package.json') }}
+            frontend/node_modules  # Cache node_modules inside `frontend` folder
+          key: ${{ runner.os }}-node-${{ hashFiles('**/frontend/package-lock.json', '**/frontend/yarn.lock') }}-${{ hashFiles('**/frontend/neon-studioz/package.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
 

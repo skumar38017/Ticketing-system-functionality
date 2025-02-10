@@ -10,6 +10,7 @@ redis_data
 nocodb_data
 .docker.env
 common.cert
+aws.cert
 Neon-Stdio-Holi-T25.pem
 
 __pycache__

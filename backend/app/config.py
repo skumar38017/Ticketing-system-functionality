@@ -20,6 +20,19 @@ class Config:
     - Email settings
     """
 
+    # General App Configurations
+    @property
+    def app_config(self) -> Dict[str, str]:
+        return {
+            "debug": settings.DEBUG,
+            "host": settings.HOST,
+            "port": settings.PORT,
+            "allowed_hosts": settings.ALLOWED_HOSTS,
+            "secret_key": settings.SECRET_KEY,
+            "cors_origins": settings.CORS_ORIGINS,
+            "dev_mode": settings.DEV_MODE,
+        }
+
     # Database URLs
     @property
     def database_url(self) -> str:
@@ -65,19 +78,6 @@ class Config:
     def celery_result_backend(self) -> str:
         return settings.CELERY_RESULT_BACKEND
 
-    # General App Configurations
-    @property
-    def app_config(self) -> Dict[str, str]:
-        return {
-            "debug": settings.DEBUG,
-            "host": settings.HOST,
-            "port": settings.PORT,
-            "allowed_hosts": settings.ALLOWED_HOSTS,
-            "secret_key": settings.SECRET_KEY,
-            "cors_origins": settings.CORS_ORIGINS,
-            "dev_mode": settings.DEV_MODE,
-        }
-
     # Webhook URL
     @property
     def webhook_url(self) -> str:
@@ -90,26 +90,21 @@ class Config:
 
     #  AWS Configuration
     @property
-    def aws_access_key(self) -> str:
-        return settings.AWS_SECRET_ACCESS_KEY
-    
-    @property
-    def aws_secret_key(self) -> str:
-        return settings.AWS_SECRET_KEY
-    
-    @property
-    def aws_region(self) -> str:    
-        return settings.AWS_REGION
+    def aws_credentials(self) -> Dict[str, str, str]:
+        return {
+            "aws_access_key_id": settings.AWS_ACCESS_KEY,
+            "aws_secret_access_key": settings.AWS_SECRET_ACCESS_KEY,
+            "region": settings.AWS_REGION
+        }
 
     #  AWS SNS Configuration
     @property    
-    def aws_sns_topic_arn(self) -> str:
-        return settings.AWS_SNS_TOPIC_ARN
+    def aws_sns_topic(self) -> Dict[str, str]:
+        return {
+            "TopicArn": settings.AWS_SNS_TOPIC_ARN,
+            "TopicName": settings.AWS_SNS_TOPIC_NAME
+        }
     
-    @property    
-    def aws_sns_topic_name(self) -> str:
-        return settings.AWS_SNS_TOPIC_NAME
-
     # SMS Service Configuration
     @property
     def sms_api(self) -> Dict[str, str]:
@@ -131,13 +126,11 @@ class Config:
 
     # Email Settings
     @property
-    def email_address(self) -> str:
-        return settings.EMAIL_ADDRESS
-
-    @property
-    def email_password(self) -> str:
-        return settings.EMAIL_PASSWORD
-
+    def email_address(self) -> Dict[str, str]:
+        return {
+            "address": settings.EMAIL_ADDRESS,
+            "password": settings.EMAIL_PASSWORD
+        }
 
 # Export a single Config instance for global access
 config = Config()

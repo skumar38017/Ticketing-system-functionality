@@ -2,6 +2,7 @@
 from celery import shared_task
 import logging
 import requests
+import boto3
 from app.config import config
 from celery.signals import task_prerun
 from celery.exceptions import MaxRetriesExceededError
@@ -9,6 +10,14 @@ from app.services.websocket_service import WebSocketHandler
 
 # Initialize logger
 logger = logging.getLogger("celery.task")
+
+# Initialize SNS Client
+sns = boto3.client(
+    'sns',
+    aws_access_key_id=config.aws_credentials["aws_access_key_id"],
+    aws_secret_access_key=config.aws_credentials["aws_secret_access_key"],
+    region_name=config.aws_credentials["region"]
+)
 
 # This handler listens for the task execution event (before task starts)
 @task_prerun.connect
@@ -35,38 +44,26 @@ def send_otp_task(phone_no: str, name: str, otp: str):
         Dear {name},
         Your One-Time Password (OTP) is: {otp}
         """
-        sms_config = config.sms_api
-        auth = (sms_config["SID"], sms_config["AUTH_TOKEN"])
 
-        payload = {
-            "Body": body,
-            "From": sms_config["PHONE_NUMBER"],
-            "To": phone_no,
-        }
-        twilio_api_url = f"https://api.twilio.com/2010-04-01/Accounts/{sms_config['SID']}/Messages.json"
+        # SNS: Publish OTP message to the SNS Topic
+        response = sns.publish(
+            PhoneNumber=phone_no,  # Send message to this phone number
+            Message=body  # Message body containing OTP
+        )
 
         # WebSocket: Notify the client that the task is being processed
         websocket_handler.send_task_status(phone_no, "processing")
 
-        # Make the request to Twilio API
-        response = requests.post(twilio_api_url, data=payload, auth=auth)
-        response.raise_for_status()
-
-        # Check response status
-        if response.status_code in [200, 201]:
+        # Check if the message was successfully sent via SNS
+        if response['ResponseMetadata']['HTTPStatusCode'] == 200:
             # WebSocket: Notify the client that the OTP was sent successfully
             websocket_handler.send_otp(phone_no, otp)
             websocket_handler.send_task_status(phone_no, "success")
 
             return {"status": "success", "message": "OTP sent successfully"}
         else:
-            raise Exception(f"Failed to send OTP: {response.status_code} - {response.text}")
-
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Twilio API error: {str(e)}")
-        websocket_handler.send_task_status(phone_no, "retrying")  # Notify the client retry is happening
-        raise send_otp_task.retry(exc=e)  # Retry the task
-
+            raise Exception(f"Failed to send OTP: {response['ResponseMetadata']['HTTPStatusCode']}")
+    
     except Exception as e:
         logger.error(f"Unexpected error: {str(e)}")
         websocket_handler.send_task_status(phone_no, "retrying")  # Notify the client retry is happening

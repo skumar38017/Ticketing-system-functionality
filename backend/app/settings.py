@@ -59,6 +59,15 @@ class Settings:
     # Webhook Configuration
     WEBHOOK_URL: str = os.getenv("WEBHOOK_URL", "http://${SERVER_IP}:8003/webhook/payment")
 
+    #  AWS Configuration
+    AWS_SECRET_ACCESS_KEY: str = os.getenv("AWS_SECRET_ACCESS_KEY", "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+    AWS_SECRET_KEY: str = os.getenv("AWS_SECRET_KEY", "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+    AWS_REGION: str = os.getenv("AWS_REGION", "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+
+    #  AWS SNS Configuration
+    AWS_SNS_TOPIC_ARN: str = os.getenv("AWS_SNS_TOPIC_ARN", "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+    AWS_SNS_TOPIC_NAME: str = os.getenv("AWS_SNS_TOPIC_NAME", "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+
     # SMS Service Configuration
     TWILIO_SID: str = os.getenv("TWILIO_SID", "ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
     TWILIO_AUTH_TOKEN: str = os.getenv("TWILIO_AUTH_TOKEN", "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")

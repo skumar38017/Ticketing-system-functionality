@@ -88,6 +88,28 @@ class Config:
     def websocket_url(self) -> str:
         return settings.WEBSOCKET_URL
 
+    #  AWS Configuration
+    @property
+    def aws_access_key(self) -> str:
+        return settings.AWS_SECRET_ACCESS_KEY
+    
+    @property
+    def aws_secret_key(self) -> str:
+        return settings.AWS_SECRET_KEY
+    
+    @property
+    def aws_region(self) -> str:    
+        return settings.AWS_REGION
+
+    #  AWS SNS Configuration
+    @property    
+    def aws_sns_topic_arn(self) -> str:
+        return settings.AWS_SNS_TOPIC_ARN
+    
+    @property    
+    def aws_sns_topic_name(self) -> str:
+        return settings.AWS_SNS_TOPIC_NAME
+
     # SMS Service Configuration
     @property
     def sms_api(self) -> Dict[str, str]:

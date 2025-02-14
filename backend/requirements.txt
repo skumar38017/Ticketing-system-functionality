@@ -5,10 +5,11 @@ anyio==4.8.0
 asttokens==3.0.0
 async-timeout==5.0.1
 asyncpg==0.30.0
+awscli==1.37.17
 base==0.0.0
 billiard==4.2.1
 boto3==1.36.16
-botocore==1.36.16
+botocore==1.36.17
 celery==5.4.0
 certifi==2024.12.14
 cffi==1.17.1
@@ -17,10 +18,12 @@ click==8.1.8
 click-didyoumean==0.3.1
 click-plugins==1.1.1
 click-repl==0.3.0
+colorama==0.4.6
 debugpy==1.8.12
 decorator==5.1.1
 dnspython==2.7.0
 docker==7.1.0
+docutils==0.16
 email_validator==2.2.0
 exceptiongroup==1.2.2
 executing==2.2.0
@@ -59,6 +62,7 @@ psutil==6.1.1
 psycopg2-binary==2.9.10
 ptyprocess==0.7.0
 pure_eval==0.2.3
+pyasn1==0.6.1
 pycparser==2.22
 pydantic==2.10.6
 pydantic_core==2.27.2
@@ -78,6 +82,7 @@ redis==5.2.1
 requests==2.32.3
 rich==13.9.4
 rich-toolkit==0.13.2
+rsa==4.7.2
 s3transfer==0.11.2
 setuptools==75.8.0
 shellingham==1.5.4

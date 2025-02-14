@@ -3,11 +3,9 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse
 from app.routes import user_routes, webhook_routes, websocket_routes, qr_code_routes
-from app.workers.celery_app import celery_app
 from app.database.database import get_db_connection, get_db, login_to_database
 from app.database.redisclient import redis_client
 from app.database.models import User
-from app.tasks.email_tasks import send_welcome_email
 from fastapi import APIRouter, WebSocket
 from app.services.websocket_service import WebSocketHandler
 from app.config import config

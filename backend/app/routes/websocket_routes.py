@@ -66,7 +66,6 @@ async def websocket_otp_status_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         await ws_handler.disconnect(websocket)
 
-
 @router.websocket("/ws/session")
 async def websocket_session_endpoint(websocket: WebSocket):
     """

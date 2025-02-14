@@ -45,18 +45,18 @@ fi
 
 # Set permissions for RabbitMQ data directory
 if [ -d "/home/tagglab/Videos/Neon-Stdio-Holi-T25/rabbitmq_data" ]; then
-    sudo chmod -R 755 /home/tagglab/Videos/Neon-Stdio-Holi-T25/rabbitmq_data
-    sudo chmod +x /home/tagglab/Videos/Neon-Stdio-Holi-T25/rabbitmq_data/plugins-entrypoint.sh
-    sudo chown -R 1000:1000 /home/tagglab/Videos/Neon-Stdio-Holi-T25/rabbitmq_data
-    sudo chmod 400  /home/tagglab/Videos/Neon-Stdio-Holi-T25/rabbitmq_data/.erlang.cookie
-    sudo chmod 777 /home/tagglab/Videos/Neon-Stdio-Holi-T25/redis_data/./*
-    sudo chmod 777 /home/tagglab/Videos/Neon-Stdio-Holi-T25/rabbitmq_data/./*
+    sudo chmod -R 755 rabbitmq_data
+    sudo chmod +x rabbitmq_data/plugins-entrypoint.sh
+    sudo chown -R 1000:1000 rabbitmq_data
+    sudo chmod 400  rabbitmq_data/.erlang.cookie
+    sudo chmod 777 redis_data/./*
+    sudo chmod 777 rabbitmq_data/./*
 else
     echo "RabbitMQ data directory not found!"
 fi
 
 # Set the Python path
-export PYTHONPATH="$PYTHONPATH:/home/tagglab/Videos/Neon-Stdio-Holi-T25/app"
+export PYTHONPATH="$PYTHONPATH:{pwd}/app"
 
 # ---------------------- Start Docker Compose -------------------------
 echo "Starting Docker containers..."
@@ -65,15 +65,15 @@ echo "Starting Docker containers..."
 docker-compose --env-file .docker.env up -d --build
 
 
-sudo chmod -R 755 /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
-sudo chown -R 1000:1000 /home/tagglab/Videos/Neon-Stdio-Holi-T25/rabbitmq_data
-sudo chown -R 755 /home/tagglab/Videos/Neon-Stdio-Holi-T25/rabbitmq_data
-sudo chmod 400  /home/tagglab/Videos/Neon-Stdio-Holi-T25/rabbitmq_data/.erlang.cookie
-sudo chmod 777 /home/tagglab/Videos/Neon-Stdio-Holi-T25/redis_data/./*
-sudo chmod 777 /home/tagglab/Videos/Neon-Stdio-Holi-T25/rabbitmq_data/./*
-export PYTHONPATH=/home/tagglab/Videos/Neon-Stdio-Holi-T25/app
-export PYTHONPATH=/home/tagglab/Videos/Neon-Stdio-Holi-T25
-docker restart $(docker ps -aq)   
+sudo chmod -R 755 rabbitmq_data
+sudo chmod +x rabbitmq_data/plugins-entrypoint.sh
+sudo chown -R 1000:1000 rabbitmq_data
+sudo chmod 400  rabbitmq_data/.erlang.cookie
+sudo chmod 777 redis_data/./*
+sudo chmod 777 rabbitmq_data/./*
+export PYTHONPATH=${pwd}app
+
+# docker restart $(docker ps -aq)   
 
 # List all running containers
 docker ps -a

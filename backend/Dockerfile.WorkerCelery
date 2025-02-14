@@ -1,15 +1,13 @@
-#  Neon-Stdio-Holi-T25/Dockerfile.WorkerCelery
-
 # Use a Python base image
 FROM python:3.12-slim
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672//
-ENV RADIS_URL=redis://redisclient:6379/0
+ENV REDIS_URL=redis://redisclient:6379/0  
 ENV CELERY_RESULT_BACKEND=redis://redisclient:6379/0
 ENV CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
-ENV PYTHONPATH=/home/tagglab/Videos/Neon-Stdio-Holi-T25/app
+ENV PYTHONPATH=app
 ENV CELERY_ACCEPT_CONTENT=json
 ENV CELERY_TASK_SERIALIZER=json
 ENV CELERY_TIMEZONE=UTC
@@ -27,7 +25,7 @@ RUN useradd -m celeryuser
 # Set the working directory inside the container
 WORKDIR /app
 
-# Copy the requirements.txt file into the container
+# Copy the requirements.txt file into the container first to take advantage of caching
 COPY requirements.txt /app/
 
 # Install Python dependencies
@@ -37,9 +35,6 @@ RUN pip install --no-cache-dir -r requirements.txt \
 
 # Copy the application code into the container
 COPY . /app/
-
-# Expose necessary ports (default for your app is 8001)
-EXPOSE 8001
 
 # Clean up any unnecessary temporary files
 RUN find / -name '*.pyc' -delete \

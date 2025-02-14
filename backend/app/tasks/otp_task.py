@@ -1,70 +1,78 @@
 # app/tasks/otp_task.py
-from celery import shared_task
 import logging
-import requests
 import boto3
+import asyncio
 from app.config import config
-from celery.signals import task_prerun
-from celery.exceptions import MaxRetriesExceededError
 from app.services.websocket_service import WebSocketHandler
+from app.utils.validator import validate_phone
 
 # Initialize logger
-logger = logging.getLogger("celery.task")
+logger = logging.getLogger("otp_task")
 
 # Initialize SNS Client
 sns = boto3.client(
     'sns',
     aws_access_key_id=config.aws_credentials["aws_access_key_id"],
     aws_secret_access_key=config.aws_credentials["aws_secret_access_key"],
-    region_name=config.aws_credentials["region"]
+    region_name=config.aws_credentials["aws_region"],
 )
 
-# This handler listens for the task execution event (before task starts)
-@task_prerun.connect
-def task_prerun_handler(sender, task_id, **kwargs):
-    print (f"Task {sender} with ID {task_id} is about to start.")
-    logger.info(f"Task {sender} with ID {task_id} is about to start.")
+# Initialize WebSocketHandler
+websocket_handler = WebSocketHandler()
 
-@shared_task(
-    name="app.tasks.otp_task.send_otp_task",
-    max_retries=5,
-    default_retry_delay=5,
-    acks_late=True,
-)
-def send_otp_task(phone_no: str, name: str, otp: str):
+# Blocking SNS call
+def send_sns_message(phone_no, body):
+    # Call SNS to send the OTP
+    sns.publish(PhoneNumber=phone_no, Message=body)
+
+# Async wrapper for blocking SNS call
+# Fully async SNS call
+async def send_sns_message_async(phone_no, body):
     try:
-        # Initialize WebSocketHandler once
-        websocket_handler = WebSocketHandler()
+        # Asynchronous SNS send logic (SNS itself does not support async, so we're wrapping it with an async method)
+        loop = asyncio.get_event_loop()
+        response = await loop.run_in_executor(
+            None,
+            sns.publish,
+            PhoneNumber=phone_no,
+            Message=body
+        )
+        return response
+    except Exception as e:
+        logger.error(f"Failed to send OTP to {phone_no}: {str(e)}")
+        return None
 
-        # WebSocket: Notify the client that the task is in queue
-        websocket_handler.send_task_status(phone_no, "queued")
+
+# Update send_otp_task to properly await async methods
+async def send_otp_task(phone_no: str, name: str, otp: str, task_id: str = None, body: str = None, properties_value: str = None):
+    try:
+        # Validate and normalize phone number
+        normalized_phone_no = validate_phone(phone_no)
+        logger.info(f"Received OTP task for {normalized_phone_no}")
+
+        # WebSocket: Notify client that the task is queued
+        await websocket_handler.send_task_status(normalized_phone_no, "queued")
 
         # Prepare OTP message body
-        body = f"""
-        Dear {name},
-        Your One-Time Password (OTP) is: {otp}
-        """
+        body = body or f"Dear {name}, Your One-Time Password (OTP) is: {otp}"
 
-        # SNS: Publish OTP message to the SNS Topic
-        response = sns.publish(
-            PhoneNumber=phone_no,  # Send message to this phone number
-            Message=body  # Message body containing OTP
-        )
+        # Send OTP asynchronously to SNS
+        response = await send_sns_message_async(normalized_phone_no, body)
 
-        # WebSocket: Notify the client that the task is being processed
-        websocket_handler.send_task_status(phone_no, "processing")
+        # WebSocket: Notify client that the task is processing
+        await websocket_handler.send_task_status(normalized_phone_no, "processing")
 
-        # Check if the message was successfully sent via SNS
-        if response['ResponseMetadata']['HTTPStatusCode'] == 200:
-            # WebSocket: Notify the client that the OTP was sent successfully
-            websocket_handler.send_otp(phone_no, otp)
-            websocket_handler.send_task_status(phone_no, "success")
-
+        # Check the response and notify the client of success/failure
+        if response and response.get('ResponseMetadata', {}).get('HTTPStatusCode') == 200:
+            await websocket_handler.send_task_status(normalized_phone_no, "success")
+            logger.info(f"OTP sent successfully to {normalized_phone_no}")
+            await websocket_handler.send_otp(normalized_phone_no, otp)
             return {"status": "success", "message": "OTP sent successfully"}
         else:
-            raise Exception(f"Failed to send OTP: {response['ResponseMetadata']['HTTPStatusCode']}")
-    
+            await websocket_handler.send_task_status(normalized_phone_no, "retrying")
+            raise Exception(f"Failed to send OTP: {response.get('ResponseMetadata', {}).get('HTTPStatusCode')}")
+
     except Exception as e:
-        logger.error(f"Unexpected error: {str(e)}")
-        websocket_handler.send_task_status(phone_no, "retrying")  # Notify the client retry is happening
-        raise send_otp_task.retry(exc=e)  # Retry the task
+        logger.error(f"Error sending OTP to {normalized_phone_no}: {str(e)}")
+        await websocket_handler.send_task_status(normalized_phone_no, "failed")
+        raise

@@ -3,9 +3,6 @@
 from app.settings import settings
 from typing import Dict
 
-from app.settings import settings
-from typing import Dict
-
 class Config:
     """
     Application configuration manager.
@@ -47,6 +44,18 @@ class Config:
             f"postgresql+asyncpg://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@"
             f"{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
         )
+
+    @property
+    def app_config(self) -> Dict[str, str]:
+        return {
+            "debug": settings.DEBUG,
+            "host": settings.HOST,
+            "port": settings.PORT,
+            "allowed_hosts": settings.ALLOWED_HOSTS,
+            "secret_key": settings.SECRET_KEY,
+            "cors_origins": settings.CORS_ORIGINS,
+            "dev_mode": settings.DEV_MODE,
+        }
 
     # RabbitMQ URL
     @property
@@ -90,19 +99,20 @@ class Config:
 
     #  AWS Configuration
     @property
-    def aws_credentials(self) -> Dict[str, str, str]:
+    def aws_credentials(self) -> Dict[str, str]:
         return {
-            "aws_access_key_id": settings.AWS_ACCESS_KEY,
-            "aws_secret_access_key": settings.AWS_SECRET_ACCESS_KEY,
-            "region": settings.AWS_REGION
+            "aws_access_key_id": settings.AWS_ACCESS_KEY_ID,  # Corrected key name
+            "aws_secret_access_key": settings.AWS_SECRET_ACCESS_KEY,  # Corrected key name
+            "aws_region": settings.AWS_REGION  # Corrected key name
         }
+
 
     #  AWS SNS Configuration
     @property    
     def aws_sns_topic(self) -> Dict[str, str]:
         return {
-            "TopicArn": settings.AWS_SNS_TOPIC_ARN,
-            "TopicName": settings.AWS_SNS_TOPIC_NAME
+            "aws_sns_topic_arn": settings.AWS_SNS_TOPIC_ARN,
+            "aws_sns_topic_name": settings.AWS_SNS_TOPIC_NAME
         }
     
     # SMS Service Configuration

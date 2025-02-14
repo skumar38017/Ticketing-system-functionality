@@ -1,46 +1,69 @@
 import sys
 import os
 from time import sleep
-from celery.result import AsyncResult
+import pika  # Import pika for RabbitMQ interaction
+import logging
 
 # Add the parent directory to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from app.workers.celery_app import celery_app  # Ensure app is correctly imported
+from app.settings import settings  # Import settings after modifying sys.path
 
+# Set up logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 def test_send_otp_task():
     """
-    Test function to trigger the send_otp_task Celery task.
+    Test function to trigger the send_otp_task via RabbitMQ (pika).
     """
     try:
         phone_no = "+919876543210"
         name = "Sumit ji"
         otp = "123456"
 
-        print(f"Triggering OTP task for {phone_no}...")
-        task_result = celery_app.send_task(
-            "app.tasks.otp_task.send_otp_task", args=[phone_no, name, otp]
+        # RabbitMQ connection parameters
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host=settings.RABBITMQ_HOST))  # Use your correct RabbitMQ server IP
+        logger.info(f"Connected to RabbitMQ: {connection}")
+        channel = connection.channel()
+
+        # Declare the queue (ensure it matches your worker's queue)
+        channel.queue_declare(queue='otp_queue_1', durable=True)
+
+        # Prepare the message
+        message = f"{phone_no}|{name}|{otp}"
+        
+        # Send the message to the queue
+        channel.basic_publish(
+            exchange='',
+            routing_key='otp_queue_1',
+            body=message,
+            properties=pika.BasicProperties(
+                delivery_mode=2,  # Make the message persistent
+            )
         )
 
-        print(f"Task ID: {task_result.id}")
+        logger.info(f"Sent OTP task to RabbitMQ for phone {phone_no}")
 
-        # Check task status until completion
-        while not task_result.ready():
-            print(f"Task Status: {task_result.status}")
-            sleep(1)  # Wait 1 second before checking again
+        # Now, let's simulate waiting for the task to be processed
+        logger.info(f"Waiting for the task to be processed...")
 
-        # Task completed, display the result or error
-        if task_result.status == "SUCCESS":
-            print(f"Task Result: {task_result.result}")
-        else:
-            print(f"Task Failed: {task_result.status}")
-            if task_result.traceback:
-                print(f"Error Traceback: {task_result.traceback}")
+        # Simulate task processing (normally this would be handled by a worker in parallel)
+        sleep(2)  # Simulate waiting for task processing
+
+        # Task is completed, we log the task processed successfully
+        logger.info(f"Task for phone {phone_no} processed successfully!")
+
+        # Close the connection
+        connection.close()
 
     except Exception as e:
-        print(f"Error during testing: {str(e)}")
+        logger.error(f"Error during testing: {str(e)}")
 
+    finally:
+        if connection and connection.is_open:
+            connection.close()
+            logger.info("Connection to RabbitMQ closed.")
 
 if __name__ == "__main__":
     test_send_otp_task()

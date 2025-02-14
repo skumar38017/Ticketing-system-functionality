@@ -24,6 +24,9 @@ sudo chmod -R 755 /var/www/Stdio-Holi-T25-frontend
 sudo chown -R www-data:www-data /var/www/Stdio-Holi-T25-frontend
 sudo chmod -R 755 /var/www/Stdio-Holi-T25-frontend
 ls -l /run/nginx.pid
+sudo chown -R www-data:www-data /run
+
+sudo nano /etc/nginx/nginx.conf
 
 
 sudo rm -rf /var/cache/nginx/*

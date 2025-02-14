@@ -36,6 +36,8 @@ docker exec -it rabbitmq rabbitmqctl set_permissions -p / holi-t25 ".*" ".*" ".*
 docker exec -it rabbitmq rabbitmqctl set_user_tags holi-t25 administrator
 
 docker exec -it rabbitmq rabbitmq-plugins enable rabbitmq_management rabbitmq_management rabbitmq_federation rabbitmq_federation_management rabbitmq_shovel rabbitmq_shovel_management
+docker exec -it rabbitmq  nc -vz 172.18.0.2 5672
+
 
 
 ----------------------------------------Run Containers----------------------------------------
@@ -96,11 +98,18 @@ sudo systemctl status rabbitmq-server
 
 --------------------------------------PostgreSQL Sumit-------------------------------
 sudo usermod -aG docker $USER
-sudo chmod 777 /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
-sudo chmod -R u+rw /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
-sudo chmod -R 755 /home/tagglab/Videos/Neon-Stdio-Holi-T25/postgres_data
-export PYTHONPATH=$PYTHONPATH:/home/tagglab/Videos/Neon-Stdio-Holi-T25/app
+sudo chmod 755 postgres_data
+sudo chmod -R u+rw postgres_data
+sudo chmod -R 755 postgres_data/*
+sudo chmod 400 rabbitmq_data/.erlang.cookie
+export PYTHONPATH=$PYTHONPATH:${pwd}
 
+sudo chown tagglab:tagglab ${pwd}/rabbitmq_data/.erlang.cookie
+sudo chmod 400 ${pwd}/rabbitmq_data/.erlang.cookie
+
+sudo chown rabbitmq:rabbitmq /home/tagglab/Videos/Neon-Stdio-Holi-T25/backend/rabbitmq_data/.erlang.cookie
+
+export PYTHONPATH=$PYTHONPATH:/home/tagglab/Videos/Neon-Stdio-Holi-T25/backend
 
 ----------------------------------------PostgreSQL ubuntu-------------------------------------
 sudo chmod -R 755 /home/ubuntu/Neon-Stdio-Holi-T25/postgres_data
@@ -169,13 +178,3 @@ celery -A app.workers.celery_app inspect active
 
 
 docker inspect --format='{{json .State.Health}}' celery-container
-
-
--------------------------------------------SNS----------------------------------------
-Account: 607702079586
-KMS key ARN - arn:aws:kms:ap-south-1:607702079586:key/b42b1032-ba55-421d-8718-fea4fb77b9b6
-
-IAM role for successful deliveries
-arn:aws:iam::607702079586:role/SNSSuccessFeedback
-IAM role for failed deliveries
-arn:aws:iam::607702079586:role/SNSFailureFeedback

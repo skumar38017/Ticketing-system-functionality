@@ -12,6 +12,8 @@ nocodb_data
 common.cert
 aws.cert
 Neon-Stdio-Holi-T25.pem
+app/cert/Neon-Stdio-Holi-T25.pem
+.holi-t25
 
 __pycache__
 

@@ -7,7 +7,6 @@ from app.config import config
 from app.services.websocket_service import WebSocketHandler
 from app.database.redisclient import redis_client
 from app.utils.generate_otp import generate_otp
-from app.tasks.otp_task import send_otp_task
 from app.settings import settings
 import aio_pika
 
@@ -18,9 +17,6 @@ class OTPService:
         self.websocket_handler = WebSocketHandler()
 
     async def send_otp(self, phone_no: str, name: str, otp: str) -> str:
-        """
-        Send OTP to the user and track its status using RabbitMQ and WebSocket.
-        """
         try:
             # Notify WebSocket that the task is queued
             await self.websocket_handler.send_task_status(phone_no, "queued")
@@ -29,33 +25,34 @@ class OTPService:
             task_id = str(uuid.uuid4())
 
             # Initialize retry attempts in Redis
-            self.redis_client.setex(f"otp_retry_{phone_no}", config.otp_expiration_time, 0)  # Start from 0 attempts
+            retry_attempts = int(self.redis_client.get(f"otp_retry_{phone_no}") or 0)
+            is_retry = retry_attempts > 0  # Determine if this is a retry
 
             # Send the OTP task to RabbitMQ asynchronously
-            await self._send_otp_to_rabbitmq(phone_no, name, otp, task_id)
+            await self._send_otp_to_rabbitmq(phone_no, name, otp, task_id, is_retry=is_retry)
 
             # Log the task ID
             self.logger.info(f"OTP task queued with ID {task_id} for phone {phone_no}")
 
             # Track the task status asynchronously
             asyncio.create_task(self._track_task_status(task_id, phone_no, otp))
-
             return task_id
+
         except Exception as e:
             self.logger.error(f"Error sending OTP: {str(e)}")
             raise HTTPException(status_code=500, detail="Failed to send OTP.")
-
+    
     async def _track_task_status(self, task_id: str, phone_no: str, otp: str):
         """
         Track the status of the OTP task and notify the client via WebSocket.
         """
-        attempts = int(self.redis_client.get(f"otp_retry_{phone_no}"))
+        attempts = int(self.redis_client.get(f"otp_retry_{phone_no}") or 0)  # Default to 0 if no retries found
         try:
             await asyncio.sleep(2)  # Simulate processing time
             await self.websocket_handler.send_task_status(phone_no, "processing")
 
             # Retry logic for OTP delivery (up to 3 attempts)
-            if attempts < 3:
+            if attempts < 2:
                 if await self._send_otp(phone_no, otp):  # Replace with real OTP delivery logic
                     await self.websocket_handler.send_task_status(phone_no, "success")
                     self.logger.info(f"Task {task_id} completed successfully.")
@@ -86,34 +83,43 @@ class OTPService:
             self.logger.error(f"Error sending OTP to {phone_no}: {str(e)}")
             return False
 
-    async def _send_otp_to_rabbitmq(self, phone_no: str, name: str, otp: str, task_id: str):
+    async def _send_otp_to_rabbitmq(self, phone_no: str, name: str, otp: str, task_id: str, is_retry: bool = False):
         try:
-            # Use async pika library (aio_pika for async communication with RabbitMQ)
-            connection = await aio_pika.connect_robust(host=settings.RABBITMQ_HOST)
+            # Ensure all required values are provided
+            if any(x is None for x in [phone_no, name, otp, task_id]):
+                raise ValueError("One or more required fields are missing.")
+                    
+            # Dynamically select which queue to send based on retry flag
+            selected_queue = 'otp_queue_2' if is_retry else 'otp_queue_1'
     
+            # Prepare the message (include task_id and retry flag for tracking)
+            message_body = f"{phone_no}|{name}|{otp}|{task_id}|{int(is_retry)}"
+    
+            # Connect to RabbitMQ
+            connection = await aio_pika.connect_robust(host=settings.RABBITMQ_HOST)
             async with connection:
                 # Create a channel
                 channel = await connection.channel()
     
-                # Dynamically select which queue to send to based on logic
-                selected_queue = 'otp_queue_1'  # This could be dynamically determined
+                # Declare the OTP queue (ensure it's durable)
+                queue = await channel.declare_queue(selected_queue, durable=True)
     
-                # Prepare the message (include task_id for tracking)
-                message_body = f"{phone_no}|{name}|{otp}|{task_id}"
-    
-                # Create a message object
+                # Create the message object
                 message = aio_pika.Message(
                     body=message_body.encode(),
                     delivery_mode=aio_pika.DeliveryMode.PERSISTENT  # Ensure message persistence
                 )
     
-                # Publish the message to the default exchange with the routing key as the queue name
+                # Publish the message to the queue
                 await channel.default_exchange.publish(
                     message,
                     routing_key=selected_queue
                 )
                 self.logger.info(f"Sent OTP task to RabbitMQ for phone {phone_no} on queue {selected_queue}")
     
+        except ValueError as ve:
+            self.logger.error(f"Error: {str(ve)}")
+            raise HTTPException(status_code=400, detail="Invalid input values.")
         except Exception as e:
             self.logger.error(f"Error sending OTP task to RabbitMQ: {str(e)}")
             raise HTTPException(status_code=500, detail="Failed to send OTP task to RabbitMQ.")

@@ -2,6 +2,7 @@
 import logging
 import boto3
 import asyncio
+from fastapi import HTTPException
 from app.config import config
 from app.services.websocket_service import WebSocketHandler
 from app.utils.validator import validate_phone
@@ -20,41 +21,37 @@ sns = boto3.client(
 # Initialize WebSocketHandler
 websocket_handler = WebSocketHandler()
 
-# Blocking SNS call
-def send_sns_message(phone_no, body):
-    # Call SNS to send the OTP
-    sns.publish(PhoneNumber=phone_no, Message=body)
-
-# Async wrapper for blocking SNS call
-# Fully async SNS call
 async def send_sns_message_async(phone_no, body):
     try:
-        # Asynchronous SNS send logic (SNS itself does not support async, so we're wrapping it with an async method)
+        logger.debug(f"Preparing to send OTP to {phone_no} with message: {body}")
         loop = asyncio.get_event_loop()
         response = await loop.run_in_executor(
             None,
-            sns.publish,
-            PhoneNumber=phone_no,
-            Message=body
+            sns.publish,    
+            {'PhoneNumber': normalized_phone_no, 'Message': body}
         )
+        logger.debug(f"Response from SNS: {response}")
         return response
     except Exception as e:
         logger.error(f"Failed to send OTP to {phone_no}: {str(e)}")
         return None
 
-
 # Update send_otp_task to properly await async methods
-async def send_otp_task(phone_no: str, name: str, otp: str, task_id: str = None, body: str = None, properties_value: str = None):
+async def send_otp_task(phone_no: str, name: str, otp: str, task_id: str = None, is_retry: bool = False):
     try:
+        # Validate input parameters
+        if phone_no is None or otp is None or task_id is None:
+            raise ValueError("phone_no, otp, and task_id must be provided.")
+        
         # Validate and normalize phone number
         normalized_phone_no = validate_phone(phone_no)
-        logger.info(f"Received OTP task for {normalized_phone_no}")
+        logger.info(f"Received OTP task for {normalized_phone_no} (Retry: {is_retry})")
 
         # WebSocket: Notify client that the task is queued
         await websocket_handler.send_task_status(normalized_phone_no, "queued")
 
         # Prepare OTP message body
-        body = body or f"Dear {name}, Your One-Time Password (OTP) is: {otp}"
+        body = f"Dear {name}, Your One-Time Password (OTP) is: {otp}"
 
         # Send OTP asynchronously to SNS
         response = await send_sns_message_async(normalized_phone_no, body)
@@ -72,7 +69,11 @@ async def send_otp_task(phone_no: str, name: str, otp: str, task_id: str = None,
             await websocket_handler.send_task_status(normalized_phone_no, "retrying")
             raise Exception(f"Failed to send OTP: {response.get('ResponseMetadata', {}).get('HTTPStatusCode')}")
 
+    except ValueError as ve:
+        logger.error(f"Error: {str(ve)}")
+        await websocket_handler.send_task_status(normalized_phone_no, "failed")
+        raise HTTPException(status_code=400, detail="Invalid input parameters.")
     except Exception as e:
         logger.error(f"Error sending OTP to {normalized_phone_no}: {str(e)}")
         await websocket_handler.send_task_status(normalized_phone_no, "failed")
-        raise
+        raise HTTPException(status_code=500, detail="Failed to send OTP.")

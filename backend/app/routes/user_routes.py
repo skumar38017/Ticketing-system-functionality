@@ -13,15 +13,18 @@ from app.config import config
 from app.utils.redis_data_storage import RedisDataStorage
 from app.curd_operation.user_curd import UserCRUD
 from app.services.otp_service import OTPService
+from app.services.email_otp_service import EmailOTPService
 from app.utils.generate_otp import generate_otp
 from app.utils.otp_verification import verify_otp
-from app.utils.validator import validate_phone  # Import the validate_phone function
+from app.utils.validator import validate_phone
+from app.utils.validate_email import validate_email
 
 
 class UserRoutes:
     def __init__(self):
         self.router = APIRouter()
         self.otp_service = OTPService()  # Correct reference to OTPService
+        self.email_otp_service = EmailOTPService()  # Correct reference to EmailOTPService
         self.user_crud = UserCRUD()
         self.redis_data_storage = RedisDataStorage()
         self.logger = logging.getLogger("uvicorn.error")
@@ -79,8 +82,12 @@ class UserRoutes:
             normalized_phone_no = validate_phone(phone_no)
             self.logger.info(f"Normalized phone number: {normalized_phone_no}")
 
+            # Step 2: Validate and normalize email
+            normalized_email = validate_email(email)
+            self.logger.info(f"Normalized email: {normalized_email}")
+
             # Step 2: Prepare user data
-            user_data = {"name": name, "email": email, "phone_no": normalized_phone_no}
+            user_data = {"name": name, "email": normalized_email, "phone_no": normalized_phone_no}
 
             # Step 3: Generate OTP
             otp = generate_otp()
@@ -94,12 +101,12 @@ class UserRoutes:
                 session_id = session["session_id"]
 
             # Step 5: Generate Redis key
-            redis_key = RedisDataStorage.generate_redis_key(name=name, email=email, phone_no=normalized_phone_no)
+            redis_key = RedisDataStorage.generate_redis_key(name=name, email=normalized_email, phone_no=normalized_phone_no)
 
             # Step 6: Store data in Redis
             redis_data = {
                 "name": name,
-                "email": email,
+                "email": normalized_email,
                 "phone_no": normalized_phone_no,
                 "otp": otp,
             }
@@ -112,7 +119,9 @@ class UserRoutes:
 
             # Step 7: Trigger OTP task asynchronously using OTPService
             task_id = await self.otp_service.send_otp(phone_no=normalized_phone_no, name=name, otp=otp)
-            self.logger.info(f"OTP generated for {normalized_phone_no}, task_id: {task_id}")
+            task_id = await self.email_otp_service.send_email_otp(email=normalized_email, name=name, otp=otp)
+            
+            self.logger.info(f"OTP generated for {normalized_phone_no}, Email OTP task_id: {task_id}")
 
             # Step 8: Send OTP to RabbitMQ
             # await self._send_otp_to_rabbitmq(normalized_phone_no, name, otp)

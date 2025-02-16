@@ -8,6 +8,7 @@ import logging
 import asyncio
 from app.config import config
 from typing import AsyncGenerator  # Import AsyncGenerator from typing
+from app.database.base import Base 
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -23,8 +24,6 @@ SessionLocal = sessionmaker(
     class_=AsyncSession
 )
 
-# Base class for models
-Base = declarative_base()
 
 # Fixing the return type to be an async generator
 async def get_db() -> AsyncGenerator[AsyncSession, None]:

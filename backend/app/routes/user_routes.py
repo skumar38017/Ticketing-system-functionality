@@ -123,9 +123,6 @@ class UserRoutes:
             
             self.logger.info(f"OTP generated for {normalized_phone_no}, Email OTP task_id: {task_id}")
 
-            # Step 8: Send OTP to RabbitMQ
-            # await self._send_otp_to_rabbitmq(normalized_phone_no, name, otp)
-
             # Step 9: Respond with task information
             return JSONResponse(
                 content={
@@ -140,26 +137,42 @@ class UserRoutes:
             self.logger.error(f"Error during user registration: {str(e)}")
             raise HTTPException(status_code=500, detail="An unexpected error occurred.")
         
-
     async def verify_otp_route(
-            self,
-            redis_key: str = Form(..., description="Redis key storing OTP"),
-            otp: str = Form(..., description="OTP entered by the user"),
-            db: AsyncSession = Depends(get_db),
-        ) -> JSONResponse:
+        self,
+        redis_key: str = Form(..., description="Redis key storing OTP"),
+        otp: str = Form(..., description="OTP entered by the user"),
+        db: AsyncSession = Depends(get_db),
+    ) -> JSONResponse:
         """
         Verify the OTP and register the user if the OTP is valid.
         """
         try:
+            # Step 1: Verify the OTP
             user_data = await verify_otp(redis_key, otp)
-            print('user_data',user_data)
+            print('user_data', user_data)
 
             if not user_data:
                 raise HTTPException(status_code=400, detail="Invalid or expired OTP.")
             
-            user_data.pop('session')
+            # Step 2: Remove session data from user_data
+            user_data.pop('session', None)
+
+                    # Step 3: Convert user_data to UserCreate schema
+            user_create = UserCreate(
+                name=user_data['name'],
+                email=user_data['email'],
+                phone_no=user_data['phone_no']
+            )
+
+            # Step 4: Save user data to the database using UserCRUD
+            user_response = await self.user_crud.create_user(db, user_create)
+
+            # Step 5: Return success response with user data
             return JSONResponse(
-                content={"message": "User registered successfully","user_data": user_data}
+                content={
+                    "message": "User registered successfully",
+                    "user_data": user_response.dict()
+                }
             )
 
         except Exception as e:

@@ -89,6 +89,8 @@ services:
     env_file:
       - ./.docker.env
     volumes:
+      - ${PWD}/postgres_data:/var/lib/postgresql/data
+      - ${PWD}/redis_data:/var/lib/redis
       - ${PWD}/nocodb_data:/usr/app/data
     depends_on:
       postgres:

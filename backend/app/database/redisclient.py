@@ -39,9 +39,9 @@ class RedisClient:
         try:
             self.redis.ping()
             logger.info("Successfully connected to Redis.")
-            print(f"Successfully connected to Redis. Redis host: {config.redis_result_url}")
+            print(f"✅ Successfully connected to Redis. Redis host: {config.redis_result_url}")
         except Exception as e:
-            logger.error(f"Error connecting to Redis: {e}")
+            logger.error(f" ❌ Failed to connect to Redis: {e}")
             raise
 
     def execute_command(self, *args, **kwargs):

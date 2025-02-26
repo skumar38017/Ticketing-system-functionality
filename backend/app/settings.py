@@ -30,6 +30,10 @@ class Settings:
     POSTGRES_DB: str = os.getenv("POSTGRES_DB", "postgres")
     POSTGRES_PORT: int = int(os.getenv("POSTGRES_PORT", 5432))
 
+    # Custom Role and Database Name
+    POSTGRES_ROLE: str = os.getenv("POSTGRES_ROLE", "postgres")  # Role name
+    POSTGRES_DB_NAME: str = os.getenv("POSTGRES_DB_NAME", "postgres")  # Database name
+
     # RabbitMQ Configuration
     RABBITMQ_HOST: str = os.getenv("RABBITMQ_HOST", "localhost")
     RABBITMQ_USER: str = os.getenv("RABBITMQ_USER", "guest")
@@ -77,11 +81,18 @@ class Settings:
     OTP_EXPIRATION_TIME: int = int(os.getenv("OTP_EXPIRATION_TIME", 300))
 
     # Data Storage Settings
-    EXPIRATION_TIME: str = os.getenv("EXPIRATION_TIME", "800")
+    EXPIRATION_TIME: str = os.getenv("EXPIRATION_TIME", "600")
+
+    # Razorpay Configuration
+    RAZORPAY_KEY: str = os.getenv("RAZORPAY_KEY", "default_razorpay_key")
+    RAZORPAY_SECRET: str = os.getenv("RAZORPAY_SECRET", "default_razorpay_secret")
+
 
     # Email Configuration
     EMAIL_ADDRESS: str = os.getenv("EMAIL_ADDRESS", "your_email_address")
     EMAIL_PASSWORD: str = os.getenv("EMAIL_PASSWORD", "your_email_password")
+
+
 
 # Export an instance of Settings for global access
 settings = Settings()

@@ -8,8 +8,13 @@ import datetime
 from datetime import datetime, timezone
 from app.database.base import Base
 
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
+
 class User(Base):
     __tablename__ = "users"
+    __table_args__ = {"schema": "public"}
 
     uuid = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String(50), nullable=False)
@@ -20,6 +25,7 @@ class User(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
+    orders = relationship("Order", back_populates="user", cascade="all, delete-orphan")
     payments = relationship("Payment", back_populates="user", cascade="all, delete-orphan")
     qr_codes = relationship("QRCode", back_populates="user", cascade="all, delete-orphan")
     sms = relationship("SMS", back_populates="user", cascade="all, delete-orphan")
@@ -40,6 +46,23 @@ class User(Base):
     def __repr__(self):
         return f"<User(uuid={self.uuid}, name='{self.name}', email='{self.email}', phone_no='{self.phone_no}')>"
 
+class Order(Base):
+    __tablename__ = "orders"
+
+    uuid = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_uuid = Column(String(36), ForeignKey('users.uuid', ondelete="CASCADE"), nullable=False)
+    razorpay_order_id = Column(String(50), nullable=False, unique=True)  # Razorpay order tracking
+    total_amount = Column(Float, nullable=False)
+    order_status = Column(Enum('created', 'paid', 'cancelled', name='order_status'), default='created')
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    user = relationship("User", back_populates="orders")
+    payments = relationship("Payment", back_populates="order", cascade="all, delete-orphan")
+
+    def __repr__(self):
+        return f"<Order(uuid={self.uuid}, razorpay_order_id={self.razorpay_order_id}, total_amount={self.total_amount}, order_status={self.order_status})>"
 
 class Payment(Base):
     __tablename__ = "payments"
@@ -51,6 +74,8 @@ class Payment(Base):
     ticket_price = Column(Integer, nullable=False)
     ticket_qty = Column(Integer, nullable=False)
     payment_method = Column(String(50), nullable=False)
+    order_uuid = Column(String(36), ForeignKey('orders.uuid', ondelete="CASCADE"), nullable=False)  # Link to Order
+    razorpay_payment_id = Column(String(50), nullable=False, unique=True)  # Razorpay payment tracking
     transaction_id = Column(String(50), nullable=False)
     discount = Column(Float, nullable=False, default=0.0)
     transaction_fee = Column(Float, nullable=False)
@@ -59,11 +84,13 @@ class Payment(Base):
     total_tax = Column(Float, nullable=False, default=0.0)
     total_amount = Column(Float, nullable=False, default=0.0)
     transaction_status = Column(Enum('successful', 'failed', 'processing', 'cancelled', 'due', name='payment_status'), nullable=False)
+    order_date = Column(DateTime, default=datetime.utcnow)
     issued_date = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
     user = relationship("User", back_populates="payments")
+    order = relationship("Order", back_populates="payments", cascade="all, delete-orphan")
     qr_codes = relationship("QRCode", back_populates="payment", cascade="all, delete-orphan")
     sms = relationship("SMS", back_populates="payment", cascade="all, delete-orphan")
     emails = relationship("Email", back_populates="payment", cascade="all, delete-orphan")
@@ -71,7 +98,7 @@ class Payment(Base):
     def to_dict(self):
         return (f"<Payment(uuid={self.uuid}, user_uuid={self.user_uuid}, ticket_description='{self.ticket_description}', "
                 f"ticket_type='{self.ticket_type}', ticket_price={self.ticket_price}, ticket_qty={self.ticket_qty}, "
-                f"payment_method='{self.payment_method}', transaction_id='{self.transaction_id}', transaction_fee={self.transaction_fee}, "
+                f"payment_method='{self.payment_method}',order_uuid={self.order_uuid}, razorpay_payment_id={self.razorpay_payment_id}, transaction_id='{self.transaction_id}', transaction_fee={self.transaction_fee}, "
                 f"invoice_amount={self.invoice_amount}, discount={self.discount}, gst={self.gst}, i_gst={self.i_gst}, "
                 f"s_gst={self.s_gst}, c_gst={self.c_gst}, total_tax={self.total_tax}, total_amount={self.total_amount}, "
                 f"transaction_status='{self.transaction_status}', issued_date='{self.issued_date}', updated_at='{self.updated_at}')>"

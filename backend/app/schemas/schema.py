@@ -1,18 +1,16 @@
-#  app/schemas/user_schema.py
+#  app/schemas/schema.py
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional
 from datetime import datetime
-from app.utils.validator import validate_phone  # Import your custom validator
+from app.utils.validator import validate_phone  # Import custom phone number validator
 
-
-# User schema
+# User Schema
 class UserBase(BaseModel):
     name: str = Field(..., max_length=50)
     email: EmailStr
-    phone_no: str = Field(..., max_length=16, min_length=10)  # Adjusted for international support
+    phone_no: str = Field(..., max_length=16, min_length=10)  # Adjusted for international phone support
 
-    # Use @field_validator in Pydantic V2
     @field_validator("phone_no")
     @classmethod
     def validate_phone_no(cls, value):
@@ -33,12 +31,12 @@ class UserResponse(UserBase):
     class Config:
         from_attributes = True  
 
-#  VerrifyBase
+# VerifyBase Schema
 class VerifyBase(BaseModel):
     session_id: str
     otp: str
 
-#  VerifyOTPResponse
+# VerifyOTPResponse Schema
 class VerifyOTPResponse(BaseModel):
     message: str
     redis_key: str
@@ -46,15 +44,68 @@ class VerifyOTPResponse(BaseModel):
     success: bool
     session_id: str
 
-# Payment Schema
-class PaymentBase(BaseModel):
+# TicketChoice Schema
+class TicketChoice(BaseModel):
+    user_uuid: str
     ticket_description: str = Field(..., max_length=500)
     ticket_type: str = Field(..., max_length=50)
     ticket_price: int
     ticket_qty: int
     payment_method: str = Field(..., max_length=50)
+
+    class Config:
+        from_attributes = True  
+
+# Payment Schema
+class PaymentData(BaseModel):
+    user_uuid: str
+    amount: int
+    payment_method: str = Field(..., example="credit_card")
+
+    @field_validator('amount')
+    def validate_amount(cls, v):
+        if v <= 0:
+            raise ValueError("Amount must be greater than 0")
+        return v
+
+# Order Schema
+class OrderBase(BaseModel):
+    razorpay_order_id: str = Field(..., max_length=50)
+    ticket_type: str = Field(..., max_length=50)
+    ticket_price: int
+    ticket_qty: int
+    discount: float = 0  # Corrected spelling from 'disscount' to 'discount'
+    total_amount: float
+    order_status: str = Field(..., pattern="^(created|paid|cancelled)$")
+
+class OrderCreate(OrderBase):
+    user_uuid: str
+
+class OrderResponse(OrderBase):
+    uuid: str
+    user_uuid: str
+    razorpay_order_id: str = Field(..., max_length=50)
+    ticket_type: str = Field(..., max_length=50)
+    ticket_price: int
+    ticket_qty: int
+    discount: float = 0  # Corrected spelling from 'disscount' to 'discount'
+    total_amount: float
+    order_status: str = Field(..., pattern="^(created|paid|cancelled)$")
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class PaymentBase(BaseModel):
+    ticket_description: str = Field(..., max_length=500)
+    ticket_type: str = Field(..., max_length=50)
+    ticket_price: int
+    ticket_qty: int
+    payment_method: str = Field(..., max_length=50, example="credit_card")
+    razorpay_payment_id: str = Field(..., max_length=50)
     transaction_id: str = Field(..., max_length=50)
-    disscount: float = 0
+    discount: float = 0  # Corrected spelling from 'disscount' to 'discount'
     transaction_fee: float
     invoice_amount: float = 0
     gst: float = 0
@@ -63,12 +114,11 @@ class PaymentBase(BaseModel):
     c_gst: float = 0
     total_tax: float = 0
     total_amount: float = 0
-    transaction_status: str = Field(..., pattern="^(successfully|failed|processing|cancelled|due)$")
-
+    transaction_status: str = Field(..., pattern="^(successful|failed|processing|cancelled|due)$")  # Fixed regex pattern
 
 class PaymentCreate(PaymentBase):
-    user_id: str
-
+    user_uuid: str
+    order_uuid: str
 
 class PaymentResponse(PaymentBase):
     uuid: str
@@ -78,8 +128,10 @@ class PaymentResponse(PaymentBase):
     ticket_price: str
     ticket_qty: str
     payment_method: str
+    razorpay_order_id: str
+    razorpay_payment_id: str
     transaction_id: str
-    disscount: float
+    discount: float  # Corrected typo here
     transaction_fee: float
     invoice_amount: float
     gst: float
@@ -95,8 +147,7 @@ class PaymentResponse(PaymentBase):
     class Config:
         from_attributes = True
 
-
-# QR Code schema
+# QR Code Schema
 class QRCodeBase(BaseModel):
     qr_code: str = Field(..., max_length=50)
     qr_unique_id: str = Field(..., max_length=50)
@@ -117,8 +168,7 @@ class QRCodeResponse(QRCodeBase):
     class Config:
         from_attributes = True
 
-
-# SMS schema
+# SMS Schema
 class SMSBase(BaseModel):
     mobile_no: str = Field(..., max_length=10, min_length=10)
     message: str = Field(..., max_length=500)
@@ -141,7 +191,6 @@ class SMSResponse(SMSBase):
 
     class Config:
         from_attributes = True
-
 
 # Email Schema
 class EmailBase(BaseModel):

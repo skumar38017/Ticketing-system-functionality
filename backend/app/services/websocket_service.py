@@ -141,3 +141,7 @@ class WebSocketHandler:
         Retrieve WebSocket connections associated with a phone number.
         """
         return self.subscriptions.get(phone_no, [])
+
+    async def broadcast_order_created(self, transaction_id: str, transaction_status: str, user_uuid: str):
+        message = f"Order with transaction ID {transaction_id}, status {transaction_status} created for user {user_uuid}"
+        await self.broadcast(message)

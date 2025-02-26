@@ -44,17 +44,17 @@ class Config:
             f"postgresql+asyncpg://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@"
             f"{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
         )
-
+    
     @property
-    def app_config(self) -> Dict[str, str]:
+    def database(self) -> dict:
         return {
-            "debug": settings.DEBUG,
-            "host": settings.HOST,
-            "port": settings.PORT,
-            "allowed_hosts": settings.ALLOWED_HOSTS,
-            "secret_key": settings.SECRET_KEY,
-            "cors_origins": settings.CORS_ORIGINS,
-            "dev_mode": settings.DEV_MODE,
+            "host": settings.POSTGRES_HOST,
+            "port": settings.POSTGRES_PORT,
+            "user": settings.POSTGRES_USER,
+            "password": settings.POSTGRES_PASSWORD,
+            "db": settings.POSTGRES_DB,
+            "role": settings.POSTGRES_ROLE,
+            "db_name": settings.POSTGRES_DB_NAME
         }
 
     # RabbitMQ URL
@@ -142,5 +142,12 @@ class Config:
             "password": settings.EMAIL_PASSWORD
         }
 
+    # Razorpay Settings
+    @property
+    def razorpay_key(self) -> str:
+        return {
+            "key": settings.RAZORPAY_KEY,
+            "secret": settings.RAZORPAY_SECRET
+        }
 # Export a single Config instance for global access
 config = Config()

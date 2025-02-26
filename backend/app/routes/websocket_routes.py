@@ -20,6 +20,16 @@ async def websocket_general_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         await ws_handler.disconnect(websocket)
 
+@router.websocket("/ws/realtime")
+async def websocket_realtime_endpoint(websocket: WebSocket):
+    await ws_handler.connect(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            await ws_handler.send_message(websocket, f"Message received: {data}")
+    except WebSocketDisconnect:
+        await ws_handler.disconnect(websocket)
+        
 #  
 @router.websocket("/ws/otp_status")
 async def websocket_otp_status_endpoint(websocket: WebSocket):

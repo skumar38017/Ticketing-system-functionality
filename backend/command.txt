@@ -118,8 +118,15 @@ sudo usermod -aG docker $USER
 sudo chmod -R u+rw /home/ubuntu/Neon-Stdio-Holi-T25/postgres_data
 sudo chmod 777 /home/ubuntu/Neon-Stdio-Holi-T25/postgres_data
 export PYTHONPATH=$PYTHONPATH:/home/ubuntu/Neon-Stdio-Holi-T25/app
-psql -h localhost -U postgres -d postgres
 
+psql -h localhost -U postgres -d postgres
+psql -h localhost -U Neon-Stdioz-Holi-T25 -d Neon-Stdioz-Holi-T25
+GRANT ALL PRIVILEGES ON DATABASE "Neon-Stdioz-Holi-T25" TO "Neon-Stdioz-Holi-T25";
+GRANT ALL PRIVILEGES ON SCHEMA public TO "Neon-Stdioz-Holi-T25";
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO "Neon-Stdioz-Holi-T25";
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO "Neon-Stdioz-Holi-T25";
+ALTER ROLE "Neon-Stdioz-Holi-T25" WITH SUPERUSER CREATEDB CREATEROLE REPLICATION BYPASSRLS;
+ALTER DATABASE "Neon-Stdioz-Holi-T25" OWNER TO "Neon-Stdioz-Holi-T25";
 
 ----------------------------------------omkar-------------------------------------
 sudo chmod -R 755 /home/omkar/Desktop/Neon-Stdio-Holi-T25/postgres_data

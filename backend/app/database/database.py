@@ -10,6 +10,7 @@ from app.config import config
 from typing import AsyncGenerator  # Import AsyncGenerator from typing
 from app.database.base import Base 
 
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -49,12 +50,13 @@ async def login_to_database():
         # Attempt to connect to the database
         async with engine.connect() as connection:
             # Simply open and close the connection to check if it's working
-            logger.info("Successfully connected to the database.")
-            print(f"Successfully connected to the async database.{config.async_database_url}")
-            print(f"Successfully connected to the sync database.{config.database_url}")
+            logger.info(f" ✅ Successfully connected to the async database.{config.async_database_url} ✅ ")
+            print(f" ✅ Successfully connected to the async database.{config.async_database_url} ✅ ")
+            logger.info(f" ✅ Successfully connected to the sync database.{config.database_url} ✅ ")
+            print(f" ✅ Successfully connected to the sync database.{config.database_url} ✅ ")
     except OperationalError as e:
-        logger.error(f"Database connection failed: {e}")
-        print(f"Database connection failed: {e}")
+        logger.error(f" ❌ Database connection failed: {e}")
+        print(f" ❌ Database connection failed: {e}")
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
         print(f"Unexpected error: {e}")

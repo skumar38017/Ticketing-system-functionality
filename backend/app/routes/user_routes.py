@@ -121,7 +121,8 @@ class UserRoutes:
             task_id = await self.otp_service.send_otp(phone_no=normalized_phone_no, name=name, otp=otp)
             task_id = await self.email_otp_service.send_email_otp(email=normalized_email, name=name, otp=otp)
             
-            self.logger.info(f"OTP generated for {normalized_phone_no}, Email OTP task_id: {task_id}")
+            self.logger.info(f"OTP generated for {normalized_phone_no}, Phone_OTP task_id: {task_id}")
+            self.logger.info(f"OTP generated for {normalized_email}, Email_OTP task_id: {task_id}")
 
             # Step 9: Respond with task information
             return JSONResponse(
@@ -157,7 +158,7 @@ class UserRoutes:
             # Step 2: Remove session data from user_data
             user_data.pop('session', None)
 
-                    # Step 3: Convert user_data to UserCreate schema
+            # Step 3: Convert user_data to UserCreate schema
             user_create = UserCreate(
                 name=user_data['name'],
                 email=user_data['email'],

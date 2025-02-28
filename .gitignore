@@ -16,6 +16,8 @@ __pycache__
 
 # redis
 appendonlydir
+dump.rdb
+nodes.conf
 
 # rabbitmq
 definitions.json

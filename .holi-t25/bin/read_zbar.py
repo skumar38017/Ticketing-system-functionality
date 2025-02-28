@@ -1,4 +1,4 @@
-#!/home/tagglab/Videos/Neon-Stdio-Holi-T25/.holi-t25/bin/python
+#!/home/tagglabs/Videos/Neon-Stdio-Holi-T25/.holi-t25/bin/python
 from __future__ import print_function
 
 import argparse

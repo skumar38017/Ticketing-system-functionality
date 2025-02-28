@@ -1,4 +1,4 @@
-#!/home/tagglab/Videos/Neon-Stdio-Holi-T25/.holi-t25/bin/python
+#!/home/tagglabs/Videos/Neon-Stdio-Holi-T25/.holi-t25/bin/python
 
 # $Id: rst2latex.py 5905 2009-04-16 12:04:49Z milde $
 # Author: David Goodger <goodger@python.org>

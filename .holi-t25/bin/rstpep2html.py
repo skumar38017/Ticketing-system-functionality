@@ -1,4 +1,4 @@
-#!/home/tagglab/Videos/Neon-Stdio-Holi-T25/.holi-t25/bin/python
+#!/home/tagglabs/Videos/Neon-Stdio-Holi-T25/.holi-t25/bin/python
 
 # $Id: rstpep2html.py 4564 2006-05-21 20:44:42Z wiemann $
 # Author: David Goodger <goodger@python.org>

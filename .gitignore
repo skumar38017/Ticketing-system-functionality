@@ -17,6 +17,12 @@ __pycache__
 # redis
 appendonlydir
 
+# rabbitmq
+definitions.json
+.erlang.cookie
+.bash_history
+mnesia
+
 #  Fastapi
 .holi-t25
 

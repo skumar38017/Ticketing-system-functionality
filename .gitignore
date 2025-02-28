@@ -19,7 +19,7 @@ __pycache__
 
 
 #  Fastapi
-*.holi-t25
+.holi-t25
 
 
 ### CUDA ###

@@ -98,7 +98,7 @@ services:
       redisclient:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${NOCO_HTTP_PORT}/api/healthz"]
+      test: ["CMD", "curl", "-f", "http://localhost:${NOCO_HTTP_PORT}"]
       interval: 1m30s
       timeout: 30s
       retries: 5

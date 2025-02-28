@@ -5,6 +5,7 @@
 
 # docker-compose
 nocodb_data
+postgres_data
 .docker.env
 common.cert
 aws.cert

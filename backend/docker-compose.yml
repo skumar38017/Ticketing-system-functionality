@@ -2,104 +2,107 @@ version: '3.8'
 
 services:
 
-  postgres:
-    image: ${POSTGRES_IMAGE}
-    container_name: ${POSTGRES_CONTAINER_NAME}
-    restart: on-failure:3
+  postgres:  # 🐘 PostgreSQL Database
+    image: ${POSTGRES_IMAGE}  
+    container_name: ${POSTGRES_CONTAINER_NAME}  
+    restart: on-failure:3  
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}  
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}  
+      POSTGRES_DB: ${POSTGRES_DB}  
     ports:
-      - "${POSTGRES_PORT}:${POSTGRES_HTTP_PORT}"
+      - "${POSTGRES_PORT}:${POSTGRES_HTTP_PORT}"  
     env_file:
-      - ./.docker.env
+      - ./.docker.env  
     volumes:
       - ${PWD}/postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
-      interval: 1m30s
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 90s
       timeout: 30s
       retries: 5
       start_period: 30s
 
-  rabbitmq:
-    image: ${RABBITMQ_IMAGE}
-    container_name: ${RABBITMQ_CONTAINER_NAME}
-    restart: on-failure:3
+  rabbitmq:  # 🐰 RabbitMQ Message Broker
+    image: ${RABBITMQ_IMAGE}  
+    container_name: ${RABBITMQ_CONTAINER_NAME}  
+    restart: on-failure:3  
     ports:
-      - "${RABBITMQ_PORT}:${RABBITMQ_PORT}"  # AMQP port (5672)
-      - "${RABBIT_WEB_PORT}:${RABBIT_WEB_HTTP_PORT}"  # RabbitMQ Web UI (15672)
+      - "${RABBITMQ_PORT}:${RABBITMQ_PORT}"  
+      - "${RABBIT_WEB_PORT}:${RABBIT_WEB_HTTP_PORT}"  
     environment:
-      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
-      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}  
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}  
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST}  
     env_file:
-      - ./.docker.env
+      - ./.docker.env  
     volumes:
-      - ${PWD}/rabbitmq_data:/var/lib/rabbitmq
-      - ${PWD}/rabbitmq_data/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - ${PWD}/rabbitmq_data:/var/lib/rabbitmq  
+      - ${PWD}/rabbitmq_data/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf  
     healthcheck:
-      test: ["CMD", "rabbitmqctl", "status"]
-      interval: 1m30s
+      test: ["CMD", "rabbitmqctl", "status"]  
+      interval: 90s
       timeout: 30s
       retries: 5
       start_period: 30s
 
-  redisclient:
-    container_name: ${REDIS_CONTAINER_NAME}
-    image: ${REDIS_IMAGE}
-    restart: on-failure:3
+  redisclient:  # 🔴 Redis Cache
+    container_name: ${REDIS_CONTAINER_NAME}  
+    image: ${REDIS_IMAGE}  
+    restart: on-failure:3  
     ports:
-      - "${REDIS_PORT}:${REDIS_HTTP_PORT}"
+      - "${REDIS_PORT}:${REDIS_HTTP_PORT}"  
     env_file:
-      - ./.docker.env
+      - ./.docker.env  
     environment:
-      - REDIS_DB_BROKER=${REDIS_DB_BROKER}
-      - REDIS_DB_RESULT=${REDIS_DB_RESULT}
+      REDIS_USER: ${REDIS_USER}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_DB_BROKER: ${REDIS_DB_BROKER}
+      REDIS_DB_RESULT: ${REDIS_DB_RESULT}  
     depends_on:
       postgres:
-        condition: service_healthy
+        condition: service_healthy  
     volumes:
       - ${PWD}/redis_data:/data
-      - ${PWD}:/app
+      - ${PWD}/redis_data/redis.log:/var/log/redis/redis.log
+      - ${PWD}/redis_data/redis.conf:/etc/redis/redis.conf
+    command: redis-server --requirepass "Neon-Studioz-Holi-T25"
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 1m30s
-      timeout: 30s
-      retries: 5
-      start_period: 30s
+      test: ["CMD", "redis-cli", "--user", "${REDIS_USER}", "--pass", "${REDIS_PASSWORD}", "ping"]  
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
-  nocodb:
-    container_name: ${NOCO_CONTAINER_NAME}
-    image: ${NOCO_IMAGE}
-    restart: on-failure:3
+  nocodb:  # 📝 NocoDB (Database UI)
+    container_name: ${NOCO_CONTAINER_NAME}  
+    image: ${NOCO_IMAGE}  
+    restart: on-failure:3  
     environment:
-      - DB_TYPE=${DB_TYPE}
-      - DB_HOST=${DB_HOST}
-      - DB_PORT=${DB_PORT}
-      - DB_USER=${DB_USER}
-      - DB_PASS=${DB_PASS}
-      - DB_NAME=${DB_NAME}
-      - NC_REDIS_URL=${CELERY_RESULT_BACKEND}
-      - NC_DB=${NC_DB}
+      DB_TYPE: ${DB_TYPE}  
+      DB_HOST: ${DB_HOST}  
+      DB_PORT: ${DB_PORT}  
+      DB_USER: ${DB_USER}  
+      DB_PASS: ${DB_PASS}  
+      DB_NAME: ${DB_NAME}  
+      NC_REDIS_URL: ${REDIS_URL}  
+      NC_DB: ${NC_DB}  
     ports:
-      - "${NOCO_DB_PORT}:${NOCO_HTTP_PORT}"
+      - "${NOCO_DB_PORT}:${NOCO_HTTP_PORT}"  
     env_file:
-      - ./.docker.env
+      - ./.docker.env  
     volumes:
-      - ${PWD}/postgres_data:/var/lib/postgresql/data
-      - ${PWD}/redis_data:/var/lib/redis
-      - ${PWD}/nocodb_data:/usr/app/data
+      - ${PWD}/postgres_data:/var/lib/postgresql/data  
+      - ${PWD}/redis_data:/var/lib/redis  
+      - ${PWD}/nocodb_data:/usr/app/data  
     depends_on:
       postgres:
-        condition: service_healthy
+        condition: service_healthy  
       redisclient:
-        condition: service_healthy
+        condition: service_healthy  
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${NOCO_HTTP_PORT}"]
-      interval: 1m30s
+      test: ["CMD", "curl", "-f", "http://localhost:${NOCO_HTTP_PORT}"]  
+      interval: 90s
       timeout: 30s
       retries: 5
       start_period: 30s
@@ -109,4 +112,3 @@ volumes:
   rabbitmq_data: {}
   redis_data: {}
   nocodb_data: {}
-

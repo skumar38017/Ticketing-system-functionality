@@ -72,11 +72,11 @@ class Config:
     # Redis URLs
     @property
     def redis_broker_url(self) -> str:
-        return f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB_BROKER}"
+        return f"redis://:{settings.REDIS_PASSWORD}@{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB_BROKER}"
 
     @property
     def redis_result_url(self) -> str:
-        return f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB_RESULT}"
+        return f"redis://:{settings.REDIS_PASSWORD}@{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB_RESULT}"
 
     # Celery configuration
     @property

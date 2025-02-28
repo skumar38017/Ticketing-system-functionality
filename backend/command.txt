@@ -98,18 +98,21 @@ sudo systemctl status rabbitmq-server
 
 --------------------------------------PostgreSQL Sumit-------------------------------
 sudo usermod -aG docker $USER
-sudo chmod 755 postgres_data
 sudo chmod -R u+rw postgres_data
+sudo chmod -R 755 postgres_data
 sudo chmod -R 755 postgres_data/*
+sudo chmod 600 rabbitmq_data/.erlang.cookie
+sudo chown 999:999 rabbitmq_data/.erlang.cookie 
+sudo chmod -R 755 redis_data
+sudo chmod -R 755 redis_data/*
 sudo chmod 400 rabbitmq_data/.erlang.cookie
-export PYTHONPATH=$PYTHONPATH:${pwd}
+export PYTHONPATH=$PYTHONPATH:/home/tagglab/Videos/Neon-Stdio-Holi-T25/backend/app
 
+export PYTHONPATH=$PYTHONPATH:${pwd}
 sudo chown tagglab:tagglab ${pwd}/rabbitmq_data/.erlang.cookie
 sudo chmod 400 ${pwd}/rabbitmq_data/.erlang.cookie
-
 sudo chown rabbitmq:rabbitmq /home/tagglab/Videos/Neon-Stdio-Holi-T25/backend/rabbitmq_data/.erlang.cookie
 
-export PYTHONPATH=$PYTHONPATH:/home/tagglab/Videos/Neon-Stdio-Holi-T25/backend
 
 ----------------------------------------PostgreSQL ubuntu-------------------------------------
 sudo chmod -R 755 /home/ubuntu/Neon-Stdio-Holi-T25/postgres_data
@@ -120,13 +123,13 @@ sudo chmod 777 /home/ubuntu/Neon-Stdio-Holi-T25/postgres_data
 export PYTHONPATH=$PYTHONPATH:/home/ubuntu/Neon-Stdio-Holi-T25/app
 
 psql -h localhost -U postgres -d postgres
-psql -h localhost -U Neon-Stdioz-Holi-T25 -d Neon-Stdioz-Holi-T25
-GRANT ALL PRIVILEGES ON DATABASE "Neon-Stdioz-Holi-T25" TO "Neon-Stdioz-Holi-T25";
-GRANT ALL PRIVILEGES ON SCHEMA public TO "Neon-Stdioz-Holi-T25";
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO "Neon-Stdioz-Holi-T25";
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO "Neon-Stdioz-Holi-T25";
-ALTER ROLE "Neon-Stdioz-Holi-T25" WITH SUPERUSER CREATEDB CREATEROLE REPLICATION BYPASSRLS;
-ALTER DATABASE "Neon-Stdioz-Holi-T25" OWNER TO "Neon-Stdioz-Holi-T25";
+psql -h localhost -U Neon-Studioz-Holi-T25 -d Neon-Studioz-Holi-T25
+GRANT ALL PRIVILEGES ON DATABASE "Neon-Studioz-Holi-T25" TO "Neon-Studioz-Holi-T25";
+GRANT ALL PRIVILEGES ON SCHEMA public TO "Neon-Studioz-Holi-T25";
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO "Neon-Studioz-Holi-T25";
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO "Neon-Studioz-Holi-T25";
+ALTER ROLE "Neon-Studioz-Holi-T25" WITH SUPERUSER CREATEDB CREATEROLE REPLICATION BYPASSRLS;
+ALTER DATABASE "Neon-Studioz-Holi-T25" OWNER TO "Neon-Studioz-Holi-T25";
 
 ----------------------------------------omkar-------------------------------------
 sudo chmod -R 755 /home/omkar/Desktop/Neon-Stdio-Holi-T25/postgres_data
@@ -185,3 +188,6 @@ celery -A app.workers.celery_app inspect active
 
 
 docker inspect --format='{{json .State.Health}}' celery-container
+
+
+redis-cli -u redis://Neon-Studioz-Holi-T25:Neon-Studioz-Holi-T25@localhost:6379

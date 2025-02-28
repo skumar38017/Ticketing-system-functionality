@@ -43,6 +43,8 @@ class Settings:
 
     # Redis Configuration
     REDIS_HOST: str = os.getenv("REDIS_HOST", "localhost")
+    REDIS_USER: str = os.getenv("REDIS_USER", "default")
+    REDIS_PASSWORD: str = os.getenv("REDIS_PASSWORD", "redis")
     REDIS_PORT: int = int(os.getenv("REDIS_PORT", 6379))
     REDIS_DB_BROKER: int = int(os.getenv("REDIS_DB_BROKER", 0))
     REDIS_DB_RESULT: int = int(os.getenv("REDIS_DB_RESULT", 0))
@@ -54,7 +56,7 @@ class Settings:
     )
     CELERY_RESULT_BACKEND: str = os.getenv(
         "CELERY_RESULT_BACKEND",
-        f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB_RESULT}"
+        f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB_RESULT}"
     )
 
     # Websocket Configuration

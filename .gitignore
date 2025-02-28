@@ -4,9 +4,6 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=flask,django,cuda
 
 # docker-compose
-rabbitmq_data
-postgres_data
-redis_data
 nocodb_data
 .docker.env
 common.cert
@@ -17,6 +14,8 @@ app/cert/Neon-Stdio-Holi-T25.pem
 payment.cert
 __pycache__
 
+# redis
+appendonlydir
 
 #  Fastapi
 .holi-t25
